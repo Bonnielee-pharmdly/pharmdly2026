@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팜들리 Pharmdly — 프로토타입 v0.4</title>
+<style>
+  :root{
+    --teal:#1B6E5E; --teal-light:#E6F4F1; --teal-mid:#7FBFB2;
+    --bg:#F4F6F5; --card:#fff; --dark:#222; --gray:#777; --line:#E3E8E6;
+    --amber:#C77B00; --amber-bg:#FFF4E0; --red:#C0392B; --red-bg:#FDECEA;
+    --green:#1E8E3E; --green-bg:#E6F4EA; --blue:#1A73E8; --blue-bg:#E8F0FE;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;}
+  body{background:#DDE4E1;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;}
+  h1.proto-title{font-size:18px;color:var(--teal);margin-bottom:4px;}
+  p.proto-sub{font-size:12px;color:var(--gray);margin-bottom:16px;text-align:center;line-height:1.6;}
+  .mode-switch{display:flex;gap:8px;margin-bottom:16px;}
+  .mode-btn{padding:10px 22px;border-radius:24px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;transition:.15s;}
+  .mode-btn.active{background:var(--teal);color:#fff;}
+  .phone{width:390px;max-width:100%;height:760px;background:var(--bg);border-radius:36px;border:10px solid #2b2b2b;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(0,0,0,.25);}
+  .app{flex:1;display:none;flex-direction:column;overflow:hidden;position:relative;}
+  .app.visible{display:flex;}
+  .topbar{background:var(--teal);color:#fff;padding:14px 16px 12px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;}
+  .topbar .brand{font-size:17px;font-weight:800;letter-spacing:-.3px;}
+  .topbar .brand small{font-weight:400;font-size:11px;opacity:.85;display:block;margin-top:2px;}
+  .cart-ic,.bell{position:relative;font-size:20px;cursor:pointer;}
+  .top-ics{display:flex;align-items:center;gap:16px;}
+  .cart-ic .cnt,.bell .cnt{position:absolute;top:-6px;right:-9px;background:#FFB300;color:#222;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+  .bell .cnt{background:var(--red);color:#fff;}
+  .notif-panel{position:absolute;top:62px;right:10px;width:300px;max-height:330px;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:60;padding:6px 12px;border:1px solid var(--line);display:none;}
+  .notif-panel.open{display:block;}
+  .notif-item{padding:11px 2px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.55;color:var(--dark);}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item .nt{font-size:10.5px;color:var(--gray);margin-top:3px;}
+  .notif-item.unread{font-weight:700;}
+  .notif-head{font-size:12px;font-weight:800;color:var(--gray);padding:10px 2px 4px;}
+  .content{flex:1;overflow-y:auto;padding:14px;padding-bottom:80px;}
+  .tabbar{position:relative;flex-shrink:0;display:flex;background:#fff;border-top:1px solid var(--line);}
+  .tabbar button{flex:1;padding:10px 2px 12px;background:none;border:none;font-size:10.5px;color:var(--gray);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;}
+  .tabbar button .ic{font-size:18px;}
+  .tabbar button.on{color:var(--teal);font-weight:700;}
+  .badge-dot{position:absolute;top:5px;right:16%;background:var(--red);color:#fff;font-size:9px;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+  .search-box{display:flex;gap:8px;margin-bottom:12px;}
+  .search-box input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:14px;outline:none;background:#fff;}
+  .search-box input:focus{border-color:var(--teal);}
+  .search-box button{padding:0 16px;border-radius:12px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--dark);cursor:pointer;}
+  .chip:hover{border-color:var(--teal);color:var(--teal);}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--line);}
+  .card.sel{border:2px solid var(--teal);background:var(--teal-light);}
+  .card.verify{border:1.5px solid #FFB300;background:var(--amber-bg);}
+  .prod-name{font-size:15px;font-weight:700;}
+  .prod-meta{font-size:12px;color:var(--gray);margin-top:3px;}
+  .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;margin-right:4px;}
+  .tag.otc{background:var(--teal-light);color:var(--teal);}
+  .tag.quasi{background:var(--blue-bg);color:var(--blue);}
+  .tag.hot{background:var(--amber-bg);color:var(--amber);}
+  .tag.deal{background:var(--red-bg);color:var(--red);}
+  .pharm-name{font-size:14.5px;font-weight:700;}
+  .pharm-info{font-size:12px;color:var(--gray);margin-top:3px;line-height:1.5;}
+  .pharm-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .stock-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap;}
+  .stock-pill.in{background:var(--green-bg);color:var(--green);}
+  .stock-pill.low{background:var(--amber-bg);color:var(--amber);}
+  .price-line{font-size:13px;font-weight:800;color:var(--dark);margin-top:5px;}
+  .price-line s{color:#aaa;font-weight:400;font-size:11.5px;margin-right:4px;}
+  .price-lock{font-size:12px;color:var(--amber);font-weight:700;margin-top:5px;cursor:pointer;}
+  .btn{display:block;width:100%;padding:13px;border-radius:12px;border:none;background:var(--teal);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;}
+  .btn:disabled{background:#B9CCC7;cursor:default;}
+  .btn.outline{background:#fff;border:1.5px solid var(--teal);color:var(--teal);}
+  .btn.small{width:auto;padding:8px 14px;font-size:12.5px;display:inline-block;margin-top:0;}
+  .btn.gray{background:#eee;color:#555;}
+  .btn.red{background:var(--red-bg);color:var(--red);}
+  .btn.amber{background:#FFB300;color:#222;}
+  .add-btn{padding:7px 13px;border-radius:10px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .add-btn.added{background:var(--teal);color:#fff;}
+  .add-btn:disabled{border-color:#ccc;color:#aaa;cursor:default;background:#f6f6f6;}
+  .section-title{font-size:13px;font-weight:800;color:var(--gray);margin:16px 2px 8px;letter-spacing:.3px;}
+  .back-link{font-size:13px;color:var(--teal);font-weight:700;cursor:pointer;margin-bottom:10px;display:inline-block;}
+  .status-banner{border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:12px;line-height:1.5;}
+  .status-banner.requested{background:var(--amber-bg);color:var(--amber);}
+  .status-banner.confirmed{background:var(--teal-light);color:var(--teal);}
+  .status-banner.ready{background:var(--green-bg);color:var(--green);}
+  .status-banner.done{background:#eee;color:#555;}
+  .status-banner.rejected{background:var(--red-bg);color:var(--red);}
+  .qty-mini{display:flex;align-items:center;gap:8px;}
+  .qty-mini button{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:14px;cursor:pointer;color:var(--teal);font-weight:700;line-height:1;}
+  .qty-mini span{font-size:14px;font-weight:800;min-width:18px;text-align:center;}
+  select.time-sel{width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--line);font-size:14px;background:#fff;margin-top:6px;}
+  .notice{font-size:11.5px;color:var(--gray);background:var(--teal-light);border-radius:10px;padding:10px 12px;line-height:1.6;margin-top:12px;}
+  .empty{text-align:center;color:var(--gray);font-size:13px;padding:40px 10px;line-height:1.7;}
+  .order-num{font-size:11px;color:var(--gray);}
+  .toggle{position:relative;width:44px;height:24px;border-radius:13px;background:#ccc;cursor:pointer;transition:.15s;flex-shrink:0;}
+  .toggle.on{background:var(--teal);}
+  .toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s;}
+  .toggle.on::after{left:23px;}
+  .inv-row{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);}
+  .inv-row:last-child{border-bottom:none;}
+  .inv-name{font-size:13.5px;font-weight:600;}
+  .inv-meta{font-size:11px;color:var(--gray);margin-top:2px;}
+  .row-btns{display:flex;gap:8px;margin-top:10px;}
+  .row-btns .btn{margin-top:0;flex:1;}
+  .cart-row{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);gap:8px;}
+  .cart-row:last-child{border-bottom:none;}
+  .cart-del{color:var(--red);font-size:16px;cursor:pointer;padding:4px;}
+  .quote-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px;}
+  .quote-table th{background:var(--teal-light);color:var(--teal);font-size:11px;padding:7px 6px;text-align:left;}
+  .quote-table td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .quote-total{display:flex;justify-content:space-between;font-size:14px;font-weight:800;padding:10px 4px 2px;}
+  .quote-total small{font-weight:400;color:var(--gray);}
+  .deposit-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);padding:2px 4px;}
+  .deposit-line.save{color:var(--red);font-weight:700;}
+  .insight-bar{display:flex;align-items:center;gap:8px;margin:6px 0;}
+  .insight-bar .bar{height:14px;background:var(--teal-mid);border-radius:7px;}
+  .insight-bar .lbl{font-size:12px;min-width:110px;font-weight:600;}
+  .insight-bar .cnt{font-size:11px;color:var(--gray);}
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#222;color:#fff;font-size:13px;padding:11px 20px;border-radius:24px;opacity:0;pointer-events:none;transition:.3s;z-index:99;white-space:nowrap;}
+  .toast.show{opacity:.95;}
+  .view-switch{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 10px;}
+  .view-switch .section-title{margin:0;}
+  .map-btn{padding:7px 12px;border-radius:10px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;}
+  .map-wrap{position:relative;width:100%;height:330px;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+    background:
+      linear-gradient(90deg,transparent 48%,#fff 48%,#fff 56%,transparent 56%),
+      linear-gradient(0deg,transparent 30%,#fff 30%,#fff 37%,transparent 37%),
+      linear-gradient(0deg,transparent 68%,#fff 68%,#fff 74%,transparent 74%),
+      linear-gradient(45deg,#DCE9E4 25%,#D2E3DC 25%,#D2E3DC 50%,#DCE9E4 50%,#DCE9E4 75%,#D2E3DC 75%);
+    background-size:100% 100%,100% 100%,100% 100%,44px 44px;}
+  .map-pin{position:absolute;transform:translate(-50%,-100%);text-align:center;cursor:pointer;transition:.15s;}
+  .map-pin .pin-ic{font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
+  .map-pin .pin-lbl{font-size:10px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:8px;padding:2px 7px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+  .map-pin.sel .pin-lbl{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .map-pin:hover{transform:translate(-50%,-100%) scale(1.08);}
+  .map-me{position:absolute;transform:translate(-50%,-50%);font-size:13px;background:var(--blue);color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px;}
+  .cat-btn{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;transition:.12s;}
+  .cat-btn:hover{border-color:var(--teal);}
+  .cat-btn.on{border-color:var(--teal);background:var(--teal-light);}
+  .cat-btn .ce{font-size:20px;}
+  .cat-btn .cn{font-size:10.5px;font-weight:700;margin-top:3px;color:var(--dark);}
+  .cat-btn .cc{font-size:9.5px;color:var(--gray);margin-top:1px;}
+</style>
+</head>
+<body>
+
+<h1 class="proto-title">💊 팜들리 Pharmdly — 인터랙티브 프로토타입 v0.4</h1>
+<p class="proto-sub">플로우: 📍 동네 인증(실판매가 공개) → 🏥 약국 선택 → 🛒 담기 → 📨 주문서 + 예약금 1,000원 결제 → 📦 준비 → 픽업 (잔액 대면 결제)<br>🎁 일부 상품은 픽업 할인 적용 · 의약품 잔액 결제는 약국에서 복약지도와 함께 대면 진행</p>
+
+<div class="mode-switch">
+  <button class="mode-btn active" id="btnPatient" onclick="setMode('patient')">🧍 환자 앱</button>
+  <button class="mode-btn" id="btnPharm" onclick="setMode('pharm')">⚕️ 약국 앱</button>
+</div>
+
+<div class="phone">
+
+  <!-- ===================== 환자 앱 ===================== -->
+  <div class="app visible" id="appPatient">
+    <div class="topbar">
+      <div class="brand">팜들리 <small id="selPharmLabel">약국을 먼저 선택해주세요</small></div>
+      <div class="top-ics">
+        <div class="bell" onclick="toggleNotif('p')">🔔<span class="cnt" id="pNotifCnt" style="display:none">0</span></div>
+        <div class="cart-ic" onclick="pTab(3)">🛒<span class="cnt" id="cartCnt" style="display:none">0</span></div>
+      </div>
+    </div>
+    <div class="notif-panel" id="pNotifPanel"></div>
+    <div class="content" id="pContent"></div>
+    <div class="tabbar">
+      <button id="pt0" class="on" onclick="pTab(0)"><span class="ic">🏥</span>약국</button>
+      <button id="pt1" onclick="pTab(1)"><span class="ic">🔍</span>검색</button>
+      <button id="pt2" onclick="pTab(2)"><span class="ic">🔥</span>트렌드</button>
+      <button id="pt3" onclick="pTab(3)"><span class="ic">🛒</span>장바구니<span class="badge-dot" id="cartBadge" style="display:none"></span></button>
+      <button id="pt4" onclick="pTab(4)"><span class="ic">📋</span>주문<span class="badge-dot" id="pBadge" style="display:none"></span></button>
+    </div>
+  </div>
+
+  <!-- ===================== 약국 앱 ===================== -->
+  <div class="app" id="appPharm">
+    <div class="topbar">
+      <div class="brand">팜들리 파트너스 <small>행복온누리약국 · 이약사님</small></div>
+      <div class="top-ics">
+        <div class="bell" onclick="toggleNotif('h')">🔔<span class="cnt" id="hNotifCnt" style="display:none">0</span></div>
+      </div>
+    </div>
+    <div class="notif-panel" id="hNotifPanel"></div>
+    <div class="content" id="phContent"></div>
+    <div class="tabbar">
+      <button id="ht0" class="on" onclick="hTab(0)"><span class="ic">🔔</span>주문 접수<span class="badge-dot" id="hBadge" style="display:none"></span></button>
+      <button id="ht1" onclick="hTab(1)"><span class="ic">📦</span>재고·가격</button>
+      <button id="ht2" onclick="hTab(2)"><span class="ic">📊</span>수요 인사이트</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 데이터 ============ */
+const PRODUCTS = [
+  {id:1, name:'타이레놀정 500mg (10정)', cat:'해열진통제', type:'일반의약품', hot:false, kw:['타이레놀','두통','해열','진통','아세트아미노펜']},
+  {id:2, name:'케어리브 밴드 M (10매)', cat:'상처케어', type:'의약외품', hot:false, kw:['밴드','케어리브','상처','습윤']},
+  {id:3, name:'락토핏 골드 (50포)', cat:'유산균', type:'건강기능식품', hot:true, kw:['유산균','락토핏','프로바이오틱스','장']},
+  {id:4, name:'마데카솔케어연고 10g', cat:'상처치료', type:'일반의약품', hot:false, kw:['마데카솔','연고','상처','흉터']},
+  {id:5, name:'판콜에스내복액 (3병)', cat:'감기약', type:'일반의약품', hot:false, kw:['판콜','감기','몸살']},
+  {id:6, name:'센텔리안24 마데카크림', cat:'더마화장품', type:'의약외품', hot:true, kw:['마데카크림','크림','재생']},
+  {id:7, name:'임팩타민 프리미엄 (120정)', cat:'고함량 비타민B', type:'일반의약품', hot:true, kw:['임팩타민','비타민','피로','비타민B']},
+  {id:8, name:'베나치오에프액 (1병)', cat:'소화제', type:'일반의약품', hot:false, kw:['베나치오','소화','체함']},
+];
+const PHARMACIES = [
+  {id:1, name:'행복온누리약국', dist:'도보 3분 · 240m', hours:'~22:00', late:true},
+  {id:2, name:'우리동네약국', dist:'도보 7분 · 520m', hours:'~20:00', late:false},
+  {id:3, name:'미소약국', dist:'도보 12분 · 900m', hours:'~19:30', late:false},
+];
+const stock = {
+  1:{1:'in',2:'in',3:'low',4:'in',5:'in',7:'in'},
+  2:{1:'in',4:'in',5:'in',6:'in',8:'in'},
+  3:{1:'low',3:'in',6:'in',7:'in'},
+};
+/* 약국별 실제 판매가 */
+const PRICE = {
+  1:{1:3400, 2:3800, 3:15500, 4:6900, 5:2700, 7:46000},
+  2:{1:3600, 4:7500, 5:2900, 6:22500, 8:1500},
+  3:{1:3300, 3:16500, 6:23800, 7:49000},
+};
+/* 픽업 할인 (약국별) */
+const DEALS = {
+  1:{7:4000, 3:1000},
+  2:{6:2500},
+  3:{7:3000},
+};
+const TIMES = ['오늘 18:30','오늘 19:00','오늘 19:30','오늘 20:00','오늘 20:30','내일 09:00','내일 12:30'];
+const DEPOSIT = 1000;
+const MY_DONG = '역삼동';
+const CATEGORIES = [
+  {emoji:'💊', name:'진통·해열', ids:[1]},
+  {emoji:'🤧', name:'감기약',   ids:[5]},
+  {emoji:'🫗', name:'소화제',   ids:[8]},
+  {emoji:'⚡', name:'비타민',   ids:[7]},
+  {emoji:'🩹', name:'상처케어', ids:[2,4]},
+  {emoji:'🦠', name:'유산균',   ids:[3]},
+  {emoji:'🧴', name:'더마·크림', ids:[6]},
+  {emoji:'🏷', name:'전체',     ids:[1,2,3,4,5,6,7,8]},
+];
+const MAP_POS = {1:{x:38,y:30}, 2:{x:68,y:55}, 3:{x:22,y:74}};
+const RANKING = [
+  {name:'임팩타민 프리미엄', pid:7, cnt:1842, chg:2},
+  {name:'센텔리안24 마데카크림', pid:6, cnt:1517, chg:1},
+  {name:'닥터마밍 연고', pid:null, cnt:1203, chg:-1},
+  {name:'락토핏 골드', pid:3, cnt:986, chg:0},
+  {name:'케어리브 밴드 M', pid:2, cnt:740, chg:3},
+];
+
+let cart = [];            // {prodId, qty} — 선택 약국 기준
+let orders = [];          // {num, pharmId, time, status, items:[{prodId,qty,price,orig,deal}]}
+let requests = [];        // {id, pharmId, text, time}
+let notifs = {p:[], h:[]}; // {text, time, read}
+let notifOpen = {p:false, h:false};
+let orderSeq = 101, reqSeq = 1;
+let pState = {tab:0, view:'home', query:'', selPharm:null, verified:false, reqOpen:false, catIdx:0};
+let hState = {tab:0};
+
+const STATUS = {
+  requested:{label:'승인 대기',  cls:'requested', pmsg:'예약금 1,000원 결제 완료. 약사님의 승인을 기다리고 있어요. 승인 전에는 수령할 수 없습니다.'},
+  confirmed:{label:'주문 승인',  cls:'confirmed', pmsg:'약국이 주문을 승인했어요! 아래 예상 픽업 시간을 확인하세요.'},
+  ready:    {label:'픽업 준비 완료', cls:'ready', pmsg:'상품이 준비되었습니다! 지금 방문해 주문번호를 보여주세요.'},
+  done:     {label:'픽업 완료',  cls:'done',      pmsg:'픽업이 완료되었습니다. 이용해주셔서 감사합니다 :)'},
+  rejected: {label:'주문 불가',  cls:'rejected',  pmsg:'재고 소진으로 취소되었습니다. 예약금 1,000원은 자동 환불됩니다.'},
+};
+const ETAS = ['즉시 가능','10분 후','20분 후','30분 후','1시간 후'];
+let defaultEta = '10분 후';
+
+/* ============ 공통 ============ */
+const $=id=>document.getElementById(id);
+const won=n=>n.toLocaleString('ko-KR')+'원';
+function price(phId,pid){return (PRICE[phId]&&PRICE[phId][pid])||0;}
+function dealOff(phId,pid){return (DEALS[phId]&&DEALS[phId][pid])||0;}
+function effPrice(phId,pid){return Math.max(0,price(phId,pid)-dealOff(phId,pid));}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setMode(m){
+  $('appPatient').classList.toggle('visible',m==='patient');
+  $('appPharm').classList.toggle('visible',m==='pharm');
+  $('btnPatient').classList.toggle('active',m==='patient');
+  $('btnPharm').classList.toggle('active',m==='pharm');
+  renderAll();
+}
+function prod(id){return PRODUCTS.find(p=>p.id===id);}
+function pharm(id){return PHARMACIES.find(p=>p.id===id);}
+function typeTag(t){return t==='일반의약품'?'<span class="tag otc">일반의약품</span>':t==='의약외품'?'<span class="tag quasi">의약외품</span>':'<span class="tag quasi">건강기능식품</span>';}
+function renderAll(){renderPatient();renderPharm();renderNotifs();updateBadges();}
+/* 알림 */
+function notify(side,text){notifs[side].unshift({text,time:'방금 전',read:false});renderNotifs();updateBadges();}
+function toggleNotif(side){
+  notifOpen[side]=!notifOpen[side];
+  if(notifOpen[side]) notifs[side].forEach(n=>n.read=true);
+  renderNotifs();updateBadges();
+}
+function renderNotifs(){
+  const render=side=>{
+    const list=notifs[side];
+    return `<div class="notif-head">🔔 알림</div>`+(list.length
+      ? list.map(n=>`<div class="notif-item ${n.read?'':'unread'}">${n.text}<div class="nt">${n.time}</div></div>`).join('')
+      : `<div class="notif-item" style="color:var(--gray)">아직 알림이 없습니다.</div>`);
+  };
+  const pp=$('pNotifPanel'), hp=$('hNotifPanel');
+  pp.innerHTML=render('p'); pp.classList.toggle('open',notifOpen.p);
+  hp.innerHTML=render('h'); hp.classList.toggle('open',notifOpen.h);
+}
+function updateBadges(){
+  const cc=cart.reduce((s,i)=>s+i.qty,0);
+  $('cartCnt').style.display=cc?'flex':'none'; $('cartCnt').textContent=cc;
+  $('cartBadge').style.display=cc?'flex':'none'; $('cartBadge').textContent=cc;
+  const active=orders.filter(o=>['requested','confirmed','ready'].includes(o.status)).length;
+  $('pBadge').style.display=active?'flex':'none'; $('pBadge').textContent=active;
+  const newForPharm=orders.filter(o=>o.pharmId===1&&o.status==='requested').length;
+  $('hBadge').style.display=newForPharm?'flex':'none'; $('hBadge').textContent=newForPharm;
+  const pUnread=notifs.p.filter(n=>!n.read).length, hUnread=notifs.h.filter(n=>!n.read).length;
+  $('pNotifCnt').style.display=pUnread?'flex':'none'; $('pNotifCnt').textContent=pUnread;
+  $('hNotifCnt').style.display=hUnread?'flex':'none'; $('hNotifCnt').textContent=hUnread;
+  $('selPharmLabel').textContent=(pState.verified?'📍 '+MY_DONG+' 인증 · ':'')+(pState.selPharm?pharm(pState.selPharm).name:'약국을 먼저 선택해주세요');
+}
+/* 동네 인증 */
+function verifyArea(){
+  if(pState.verified) return;
+  pState.verified=true; renderAll();
+  toast('📍 '+MY_DONG+' 동네 인증 완료! 실제 판매가가 공개됩니다');
+}
+function verifyBanner(){
+  if(pState.verified) return '';
+  return `<div class="card verify">
+    <div class="prod-name" style="font-size:13.5px">🔒 동네 인증하면 약국별 <b>실제 판매가</b>가 공개돼요</div>
+    <div class="prod-meta" style="margin-top:4px;line-height:1.5">GPS로 우리 동네를 인증한 이웃에게만<br>지역 약국의 투명한 가격을 보여드립니다.</div>
+    <button class="btn amber" style="margin-top:10px" onclick="verifyArea()">📍 ${MY_DONG} 동네 인증하기 (GPS · 데모)</button>
+  </div>`;
+}
+function priceLine(phId,pid){
+  if(!pState.verified) return `<div class="price-lock" onclick="verifyArea()">🔒 동네 인증 시 판매가 공개</div>`;
+  const p=price(phId,pid), off=dealOff(phId,pid);
+  if(off) return `<div class="price-line"><s>${won(p)}</s> ${won(p-off)} <span class="tag deal">🎁 픽업할인 −${won(off)}</span></div>`;
+  return `<div class="price-line">판매가 ${won(p)}</div>`;
+}
+
+/* ============ 환자 앱 ============ */
+function pTab(i){pState.tab=i;pState.view='home';renderPatient();
+  [0,1,2,3,4].forEach(n=>$('pt'+n).classList.toggle('on',n===i));}
+function renderPatient(){
+  const c=$('pContent');
+  if(pState.tab===0){ c.innerHTML = pState.view==='map' ? pharmMapView() : pharmListView(); }
+  else if(pState.tab===1){
+    c.innerHTML = pState.selPharm ? (pState.view==='results'?searchResults():pState.view==='cat'?catResults():searchHome()) : needPharm();
+  }
+  else if(pState.tab===2){ c.innerHTML=trendView(); }
+  else if(pState.tab===3){ c.innerHTML = pState.selPharm&&cart.length ? cartView() : emptyCart(); }
+  else { c.innerHTML=myOrders(); }
+  updateBadges();
+}
+function needPharm(){
+  return `<div class="empty">먼저 약국을 선택해주세요!<br><br>선택한 약국의 보유 상품 안에서<br>담기 → 주문·예약금 결제 → 픽업이 진행됩니다.<br><br><button class="btn small" onclick="pTab(0)">🏥 약국 선택하러 가기</button></div>`;
+}
+/* --- 약국 탭 --- */
+function pharmListView(){
+  const cards=PHARMACIES.map(ph=>{
+    const cnt=Object.keys(stock[ph.id]).length;
+    const dealCnt=Object.keys(DEALS[ph.id]||{}).filter(pid=>stock[ph.id][pid]).length;
+    const isSel=pState.selPharm===ph.id;
+    return `<div class="card ${isSel?'sel':''}">
+      <div class="pharm-row">
+        <div>
+          <div class="pharm-name">${ph.name} ${ph.late?'<span class="tag hot">심야</span>':''} ${isSel?'<span class="tag otc">✓ 선택됨</span>':''}</div>
+          <div class="pharm-info">${ph.dist} · 영업 ${ph.hours}<br>등록 상품 ${cnt}종 ${dealCnt?'· <b style="color:var(--red)">🎁 픽업 할인 '+dealCnt+'종</b>':''}</div>
+        </div>
+        <button class="add-btn ${isSel?'added':''}" onclick="selectPharm(${ph.id})">${isSel?'✓ 내 약국':'선택'}</button>
+      </div>
+      ${isSel?`<button class="btn small outline" style="margin-top:10px" onclick="pTab(1)">🔍 이 약국 상품 보러 가기</button>`:''}
+    </div>`;}).join('');
+  return `${verifyBanner()}
+  <div class="view-switch">
+    <div class="section-title">🏥 내 주변 약국 (가까운 순)</div>
+    <button class="map-btn" onclick="pState.view='map';renderPatient()">🗺 지도로 찾기</button>
+  </div>${cards}
+  <div class="notice">ℹ️ 약국을 선택하면 해당 약국이 등록한 재고와 ${pState.verified?'실제 판매가':'가격(동네 인증 후)'}를 볼 수 있습니다. 가격은 약국이 직접 등록·관리합니다.</div>`;
+}
+function pharmMapView(){
+  const pins=PHARMACIES.map(ph=>{
+    const pos=MAP_POS[ph.id], isSel=pState.selPharm===ph.id;
+    return `<div class="map-pin ${isSel?'sel':''}" style="left:${pos.x}%;top:${pos.y}%" onclick="selectPharm(${ph.id})">
+      <div class="pin-ic">${isSel?'📍':'💊'}</div>
+      <div class="pin-lbl">${ph.name}${isSel?' ✓':''}</div>
+    </div>`;}).join('');
+  const sel=pState.selPharm?pharm(pState.selPharm):null;
+  return `<div class="view-switch">
+    <div class="section-title">🗺 지도에서 약국 찾기</div>
+    <button class="map-btn" onclick="pState.view='home';renderPatient()">📃 목록으로</button>
+  </div>
+  <div class="map-wrap">
+    <div class="map-me" style="left:50%;top:48%" title="내 위치">🧍</div>
+    ${pins}
+  </div>
+  ${sel?`<div class="card sel" style="margin-top:10px">
+    <div class="pharm-row">
+      <div><div class="pharm-name">${sel.name} ${sel.late?'<span class="tag hot">심야</span>':''} <span class="tag otc">✓ 선택됨</span></div>
+      <div class="pharm-info">${sel.dist} · 영업 ${sel.hours} · 등록 상품 ${Object.keys(stock[sel.id]).length}종</div></div>
+    </div>
+    <button class="btn small outline" style="margin-top:10px" onclick="pTab(1)">🔍 이 약국 상품 보러 가기</button>
+  </div>`:`<div class="notice" style="margin-top:10px">📍 핀을 누르면 약국이 선택됩니다. 파란 원은 내 위치예요.</div>`}`;
+}
+function selectPharm(id){
+  if(pState.selPharm===id) return;
+  if(cart.length && !confirm('약국을 변경하면 장바구니가 비워집니다. 변경할까요?')) return;
+  cart=[];
+  pState.selPharm=id;
+  renderAll();
+  toast(pharm(id).name+' 선택! 이 약국의 상품을 담아보세요');
+}
+/* --- 검색(약국 내) 탭 --- */
+function inCart(pid){return cart.some(i=>i.prodId===pid);}
+function addCart(pid){
+  if(!pState.selPharm){toast('먼저 약국을 선택해주세요 🏥');pTab(0);return;}
+  if(!pState.verified){toast('동네 인증 후 주문할 수 있어요 📍');verifyPrompt();return;}
+  if(!stock[pState.selPharm][pid]){toast('선택한 약국에 없는 상품입니다');return;}
+  const it=cart.find(i=>i.prodId===pid);
+  if(it){it.qty=Math.min(5,it.qty+1);} else cart.push({prodId:pid,qty:1});
+  renderAll(); toast('장바구니에 담았습니다 🛒');
+}
+function verifyPrompt(){
+  if(confirm('📍 '+MY_DONG+' 동네 인증을 진행할까요? (GPS 확인 · 데모)')) verifyArea();
+}
+function cartQty(pid,d){
+  const it=cart.find(i=>i.prodId===pid); if(!it)return;
+  it.qty+=d; if(it.qty<1) cart=cart.filter(i=>i.prodId!==pid);
+  renderAll();
+}
+function rmCart(pid){cart=cart.filter(i=>i.prodId!==pid);renderAll();}
+function prodCard(p){
+  const phId=pState.selPharm;
+  const s=stock[phId][p.id];
+  return `<div class="card">
+    <div class="pharm-row">
+      <div>
+        <div>${typeTag(p.type)}${p.hot?'<span class="tag hot">🔥 인기</span>':''}<span class="stock-pill ${s==='low'?'low':'in'}" style="margin-left:2px">${s==='low'?'소량 남음':'재고 있음'}</span></div>
+        <div class="prod-name" style="margin-top:6px">${p.name}</div>
+        <div class="prod-meta">${p.cat}</div>
+        ${priceLine(phId,p.id)}
+      </div>
+      <button class="add-btn ${inCart(p.id)?'added':''}" onclick="addCart(${p.id})">${inCart(p.id)?'✓ 담김':'🛒 담기'}</button>
+    </div>
+  </div>`;
+}
+function pharmProducts(){return PRODUCTS.filter(p=>stock[pState.selPharm][p.id]);}
+function searchHome(){
+  const ph=pharm(pState.selPharm);
+  const items=pharmProducts();
+  return `${verifyBanner()}
+  <div class="search-box">
+    <input id="pQuery" placeholder="증상 혹은 제품명을 입력하세요" value="${pState.query}" onkeydown="if(event.key==='Enter')doSearch()">
+    <button onclick="doSearch()">검색</button>
+  </div>
+  <div class="chips">
+    ${['타이레놀','유산균','연고','감기약','비타민','밴드'].map(k=>`<span class="chip" onclick="quickSearch('${k}')">${k}</span>`).join('')}
+  </div>
+  <div class="section-title">🗂 분류로 보기</div>
+  <div class="cat-grid">
+    ${CATEGORIES.map((c,i)=>{
+      const cnt=c.ids.filter(id=>stock[pState.selPharm][id]).length;
+      return `<div class="cat-btn" onclick="openCat(${i})"><div class="ce">${c.emoji}</div><div class="cn">${c.name}</div><div class="cc">${cnt}종</div></div>`;
+    }).join('')}
+  </div>
+  <div class="section-title">📍 ${ph.name} 보유 상품 ${items.length}종</div>
+  ${items.map(p=>prodCard(p)).join('')}
+  ${requestBox(ph)}
+  <div class="notice">💡 찾는 상품이 없나요? <b style="cursor:pointer;color:var(--teal)" onclick="pTab(0)">다른 약국 보기 →</b><br>검색어와 추가 요청은 약국에 "수요 인사이트"로 전달되어 구색 개선에 반영됩니다.</div>`;
+}
+function requestBox(ph){
+  if(!pState.reqOpen){
+    return `<button class="btn outline" onclick="pState.reqOpen=true;renderPatient();setTimeout(()=>{const i=$('reqInput');if(i)i.focus()},50)">➕ 상품 추가 요청</button>`;
+  }
+  return `<div class="card" style="border-color:var(--teal)">
+    <div class="section-title" style="margin:0 0 8px">➕ 상품 추가 요청 — ${ph.name}</div>
+    <div class="search-box" style="margin:0">
+      <input id="reqInput" placeholder="요청할 제품명을 입력하세요" onkeydown="if(event.key==='Enter')sendRequest()">
+      <button onclick="sendRequest()">요청</button>
+    </div>
+    <div class="inv-meta" style="margin-top:8px">요청은 약사님께 전달되며, 입고 시 알림을 보내드려요.</div>
+    <button class="btn small gray" style="margin-top:8px" onclick="pState.reqOpen=false;renderPatient()">닫기</button>
+  </div>`;
+}
+function sendRequest(){
+  const v=$('reqInput').value.trim();
+  if(!v){toast('제품명을 입력해주세요');return;}
+  requests.unshift({id:reqSeq++, pharmId:pState.selPharm, text:v, time:'방금 전'});
+  if(pState.selPharm===1) notify('h','🙋 고객 상품 추가 요청 — "'+v+'"');
+  pState.reqOpen=false;renderAll();
+  toast('"'+v+'" 추가 요청 전송! 약국 앱 인사이트에서 확인 →');
+}
+function openCat(i){pState.catIdx=i;pState.view='cat';renderPatient();}
+function catResults(){
+  const c=CATEGORIES[pState.catIdx];
+  const res=pharmProducts().filter(p=>c.ids.includes(p.id));
+  return `<span class="back-link" onclick="pState.view='home';renderPatient()">‹ 분류로 돌아가기</span>
+  <div class="cat-grid">
+    ${CATEGORIES.map((cc,i)=>{
+      const cnt=cc.ids.filter(id=>stock[pState.selPharm][id]).length;
+      return `<div class="cat-btn ${i===pState.catIdx?'on':''}" onclick="openCat(${i})"><div class="ce">${cc.emoji}</div><div class="cn">${cc.name}</div><div class="cc">${cnt}종</div></div>`;
+    }).join('')}
+  </div>
+  <div class="section-title">${c.emoji} ${c.name} — ${pharm(pState.selPharm).name} ${res.length}건</div>
+  ${res.length?res.map(p=>prodCard(p)).join(''):`<div class="empty">이 약국에는 ${c.name} 상품이 없습니다.<br><br><button class="btn small outline" onclick="pTab(0)">🏥 다른 약국에서 찾아보기</button><br><br><span style="font-size:11px">이 탐색 기록은 약국에 수요 정보로 전달됩니다</span></div>`}`;
+}
+function doSearch(){pState.query=$('pQuery').value.trim();pState.view='results';renderPatient();}
+function quickSearch(k){pState.query=k;pState.view='results';renderPatient();}
+function searchResults(){
+  const q=pState.query;
+  const res=pharmProducts().filter(p=>!q||p.name.includes(q)||p.kw.some(k=>k.includes(q))||p.cat.includes(q));
+  return `<span class="back-link" onclick="pState.view='home';renderPatient()">‹ 전체 상품으로</span>
+  <div class="section-title">"${q}" — ${pharm(pState.selPharm).name} 내 결과 ${res.length}건</div>
+  ${res.length?res.map(p=>prodCard(p)).join(''):`<div class="empty">이 약국에는 "${q}" 관련 상품이 없습니다.<br><br><button class="btn small" onclick="pState.view='home';pState.reqOpen=true;renderPatient();setTimeout(()=>{const i=$('reqInput');if(i){i.value='${q}';i.focus()}},50)">➕ "${q}" 상품 추가 요청</button>　<button class="btn small outline" onclick="pTab(0)">🏥 다른 약국에서 찾기</button><br><br><span style="font-size:11px">이 검색 기록은 약국에 수요 정보로 전달됩니다</span></div>`}`;
+}
+/* --- 장바구니 탭 --- */
+function emptyCart(){
+  return `<div class="empty">장바구니가 비어 있습니다.<br><br>${pState.selPharm?'🔍 검색 탭에서 <b>'+pharm(pState.selPharm).name+'</b>의<br>상품을 담아보세요!':'🏥 약국을 먼저 선택한 뒤<br>상품을 담아보세요!'}<br><br><button class="btn small" onclick="pTab(${pState.selPharm?1:0})">${pState.selPharm?'🔍 상품 보러 가기':'🏥 약국 선택하러 가기'}</button></div>`;
+}
+function cartTotals(){
+  let total=0, save=0;
+  cart.forEach(i=>{
+    total+=effPrice(pState.selPharm,i.prodId)*i.qty;
+    save+=dealOff(pState.selPharm,i.prodId)*i.qty;
+  });
+  return {total,save};
+}
+function cartView(){
+  const ph=pharm(pState.selPharm);
+  const rows=cart.map(i=>{
+    const p=prod(i.prodId);
+    const off=dealOff(ph.id,i.prodId);
+    return `<div class="cart-row">
+      <div style="flex:1"><div class="inv-name">${p.name}</div>
+      <div class="inv-meta">${off?`<s>${won(price(ph.id,i.prodId))}</s> <b style="color:var(--red)">${won(effPrice(ph.id,i.prodId))} 🎁</b>`:won(price(ph.id,i.prodId))}</div></div>
+      <div class="qty-mini"><button onclick="cartQty(${i.prodId},-1)">−</button><span>${i.qty}</span><button onclick="cartQty(${i.prodId},1)">＋</button></div>
+      <span class="cart-del" onclick="rmCart(${i.prodId})">🗑</span>
+    </div>`;}).join('');
+  const t=cartTotals();
+  return `<div class="section-title">🛒 장바구니 — 📍 ${ph.name}</div>
+  <div class="card">${rows}
+    ${t.save?`<div class="deposit-line save"><span>🎁 픽업 할인</span><span>−${won(t.save)}</span></div>`:''}
+    <div class="quote-total"><span>합계 (실판매가)</span><span>${won(t.total)}</span></div>
+    <div class="deposit-line"><span>픽업 예약금 (지금 결제)</span><span>${won(DEPOSIT)}</span></div>
+    <div class="deposit-line"><span>약국 방문 시 결제</span><span>${won(Math.max(0,t.total-DEPOSIT))}</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title" style="margin:0 0 4px">방문 예정 시간</div>
+    <select class="time-sel" id="timeSel">
+      <option>⚡ 바로 수령 (가능한 빨리)</option>
+      ${TIMES.map(tm=>`<option>${tm}</option>`).join('')}
+    </select>
+    <button class="btn amber" onclick="sendOrder()">📨 주문서 보내기 + 예약금 ${won(DEPOSIT)} 결제 (데모)</button>
+  </div>
+  <div class="notice">ℹ️ 주문은 <b>약사님이 승인해야 확정</b>되며, 승인 시 예상 픽업 시간을 안내해드려요. 예약금은 노쇼 방지 보증금으로 픽업 시 결제액에서 차감되고, 주문 불가 시 자동 환불됩니다. 의약품 잔액은 약국에서 복약지도와 함께 대면 결제합니다.</div>`;
+}
+function sendOrder(){
+  const phId=pState.selPharm;
+  const tv=$('timeSel').value;
+  const items=cart.map(i=>({prodId:i.prodId, qty:i.qty, price:effPrice(phId,i.prodId), orig:price(phId,i.prodId), deal:dealOff(phId,i.prodId)>0}));
+  orders.unshift({num:'P-'+(orderSeq++), pharmId:phId, time:tv, asap:tv.startsWith('⚡'), eta:null, status:'requested', items});
+  cart=[];
+  if(phId===1) notify('h','📨 새 주문 도착 — 승인 대기 중 ('+tv+')');
+  pTab(4);
+  toast('주문서 전송 + 예약금 1,000원 결제 완료! 약사님 승인을 기다려주세요');
+}
+/* --- 주문 --- */
+function orderTable(o){
+  const rows=o.items.map(it=>{
+    const p=prod(it.prodId);
+    return `<tr><td>${p.name} × ${it.qty}${it.deal?' <span class="tag deal">🎁</span>':''}</td>
+      <td style="text-align:right">${it.deal?`<s style="color:#aaa;font-size:11px">${won(it.orig*it.qty)}</s> `:''}${won(it.price*it.qty)}</td></tr>`;
+  }).join('');
+  return `<table class="quote-table"><tr><th>품목</th><th style="text-align:right">금액</th></tr>${rows}</table>`;
+}
+function orderTotal(o){return o.items.reduce((s,i)=>s+i.price*i.qty,0);}
+function myOrders(){
+  if(!orders.length) return '<div class="empty">아직 주문 내역이 없습니다.<br>🏥 약국 선택 → 🛒 담기 → 주문서를 보내보세요!</div>';
+  return '<div class="section-title">내 주문 · 예약</div>'+orders.map(o=>{
+    const ph=pharm(o.pharmId), st=STATUS[o.status];
+    const tot=orderTotal(o);
+    let body=`${orderTable(o)}
+      <div class="quote-total"><span>합계</span><span>${won(tot)}</span></div>`;
+    if(o.status!=='rejected'){
+      body+=`<div class="deposit-line"><span>예약금 결제됨 (픽업 시 차감)</span><span>−${won(DEPOSIT)}</span></div>
+      <div class="deposit-line"><span>방문 시 결제 ${o.status==='done'?'완료':'예정'}</span><span>${won(Math.max(0,tot-DEPOSIT))}</span></div>`;
+    }
+    if(['confirmed','ready'].includes(o.status)&&o.eta){
+      body+=`<div class="status-banner confirmed" style="margin:10px 0 0">🕒 약국 안내 예상 픽업 시간: <b>${o.eta}</b>${o.status==='ready'?' — 준비 끝! 바로 오셔도 됩니다':''}</div>`;
+    }
+    if(o.status==='ready') body+=`<button class="btn outline" onclick="completePickup('${o.num}')">픽업 완료 처리 (데모)</button>`;
+    return `<div class="card">
+      <div class="status-banner ${st.cls}" style="margin-bottom:10px">${st.label} · ${st.pmsg}</div>
+      <div class="order-num">주문번호 ${o.num} · ${ph.name} · ${o.asap?'⚡ 바로 수령 희망':o.time+' 방문 예정'}</div>
+      ${body}</div>`;
+  }).join('');
+}
+function completePickup(num){const o=orders.find(x=>x.num===num);o.status='done';renderAll();toast('픽업 완료! 좋은 하루 되세요 💊');}
+/* --- 트렌드 --- */
+function trendBtn(pid){
+  if(!pState.selPharm) return `<button class="add-btn" onclick="pTab(0);toast('약국을 먼저 선택해주세요 🏥')">약국 선택</button>`;
+  if(!stock[pState.selPharm][pid]) return `<button class="add-btn" disabled>이 약국에 없음</button>`;
+  return `<button class="add-btn ${inCart(pid)?'added':''}" onclick="addCart(${pid})">${inCart(pid)?'✓ 담김':'🛒 담기'}</button>`;
+}
+function trendView(){
+  return `<div class="section-title">🔥 쇼츠에서 화제! 약사 팩트체크</div>
+  ${pState.selPharm?'':'<div class="notice" style="margin:0 0 10px">🏥 약국을 선택하면 트렌드 상품을 바로 담을 수 있어요.</div>'}
+  <div class="card"><div class="pharm-row"><div>
+    <div><span class="tag hot">SHORTS 인기</span>${typeTag('일반의약품')}</div>
+    <div class="prod-name" style="margin-top:6px">임팩타민 프리미엄</div>
+    <div class="prod-meta" style="line-height:1.6;margin-top:4px">"피로회복 비타민 끝판왕" 영상 320만 회<br><b style="color:var(--teal)">👩‍⚕️ 약사 코멘트:</b> 고함량 비타민B 복합제로 만성피로에 도움이 될 수 있으나, 위장장애가 있다면 식후 복용을 권합니다.</div>
+    ${pState.selPharm&&stock[pState.selPharm][7]?priceLine(pState.selPharm,7):''}</div>
+    ${trendBtn(7)}</div></div>
+  <div class="card"><div class="pharm-row"><div>
+    <div><span class="tag hot">SHORTS 인기</span>${typeTag('건강기능식품')}</div>
+    <div class="prod-name" style="margin-top:6px">락토핏 골드</div>
+    <div class="prod-meta" style="line-height:1.6;margin-top:4px">"국민 유산균" 숏폼 다수<br><b style="color:var(--teal)">👩‍⚕️ 약사 코멘트:</b> 균주와 보장균수를 확인하세요. 항생제 복용 중이라면 2시간 간격을 두세요.</div>
+    ${pState.selPharm&&stock[pState.selPharm][3]?priceLine(pState.selPharm,3):''}</div>
+    ${trendBtn(3)}</div></div>
+  <div class="section-title">🏆 실시간 요청 제품 전국 순위</div>
+  <div class="card">
+    ${RANKING.map((r,i)=>`<div class="inv-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:15px;font-weight:800;color:${i<3?'var(--teal)':'var(--gray)'};min-width:18px">${i+1}</span>
+        <div><div class="inv-name">${r.name}</div>
+        <div class="inv-meta">요청 ${r.cnt.toLocaleString('ko-KR')}건 · ${r.chg>0?'<b style="color:var(--red)">▲'+r.chg+'</b>':r.chg<0?'<b style="color:var(--blue)">▼'+(-r.chg)+'</b>':'—'}</div></div>
+      </div>
+      ${rankBtn(r)}
+    </div>`).join('')}
+    <div class="inv-meta" style="margin-top:8px">최근 24시간 전국 팜들리 사용자의 상품 추가 요청 집계 (데모 데이터)</div>
+  </div>
+  <div class="notice">ℹ️ 트렌드 콘텐츠는 광고가 아닌 정보 제공 목적이며, 의약품 광고 심의 기준을 준수합니다.</div>`;
+}
+function rankBtn(r){
+  if(r.pid && pState.selPharm && stock[pState.selPharm][r.pid]){
+    return `<button class="add-btn ${inCart(r.pid)?'added':''}" onclick="addCart(${r.pid})">${inCart(r.pid)?'✓ 담김':'🛒 담기'}</button>`;
+  }
+  if(!pState.selPharm) return `<button class="add-btn" onclick="pTab(0);toast('약국을 먼저 선택해주세요 🏥')">약국 선택</button>`;
+  return `<button class="add-btn" onclick="pTab(1);pState.reqOpen=true;renderPatient();setTimeout(()=>{const i=$('reqInput');if(i){i.value='${r.name}';i.focus()}},50)">➕ 요청</button>`;
+}
+
+/* ============ 약국 앱 ============ */
+function hTab(i){hState.tab=i;renderPharm();[0,1,2].forEach(n=>$('ht'+n).classList.toggle('on',n===i));}
+function renderPharm(){
+  const c=$('phContent');
+  if(hState.tab===0) c.innerHTML=pharmOrders();
+  else if(hState.tab===1) c.innerHTML=invView();
+  else c.innerHTML=insightView();
+  updateBadges();
+}
+function pharmOrders(){
+  const my=orders.filter(o=>o.pharmId===1);
+  if(!my.length) return '<div class="empty">아직 접수된 주문이 없습니다.<br><br>👈 환자 앱에서 동네 인증 후 <b>행복온누리약국</b>을 선택하고<br>장바구니 → 주문서를 보내보세요!</div>';
+  return '<div class="section-title">주문 접수 현황</div>'+my.map(o=>{
+    const st=STATUS[o.status];
+    const tot=orderTotal(o);
+    let body=`${orderTable(o)}
+      <div class="quote-total"><span>합계</span><span>${won(tot)}</span></div>
+      <div class="deposit-line"><span>예약금 수령 ${o.status==='rejected'?'(환불됨)':'(픽업 시 차감)'}</span><span>${won(DEPOSIT)}</span></div>`;
+    if(o.status==='requested'){
+      body+=`<div class="section-title" style="margin:10px 0 4px">🕒 예상 픽업 시간 안내 ${o.asap?'<span class="tag hot">⚡ 고객이 바로 수령 희망</span>':''}</div>
+      <select class="time-sel" id="eta-${o.num}" style="margin:0">
+        ${ETAS.map(e=>`<option ${e===defaultEta?'selected':''}>${e}</option>`).join('')}
+      </select>
+      <div class="row-btns">
+        <button class="btn small" onclick="approveOrder('${o.num}')">✓ 승인 + 픽업 시간 안내</button>
+        <button class="btn small red" onclick="setStatus('${o.num}','rejected')">✕ 재고 없음 (예약금 환불)</button>
+      </div>`;
+    } else if(o.status==='confirmed'){
+      body+=`<div class="deposit-line"><span>안내한 예상 픽업 시간</span><span><b>${o.eta}</b></span></div>
+      <button class="btn outline" onclick="setStatus('${o.num}','ready')">📦 픽업 준비 완료 알림 보내기</button>`;
+    } else if(o.status==='ready'){
+      body+=`<div class="deposit-line"><span><b>방문 시 수금액</b></span><span><b>${won(Math.max(0,tot-DEPOSIT))}</b></span></div>
+      <button class="btn gray" onclick="setStatus('${o.num}','done')">픽업 완료 처리</button>`;
+    }
+    return `<div class="card">
+      <div class="status-banner ${st.cls}" style="margin-bottom:10px">${st.label}</div>
+      <div class="order-num">주문번호 ${o.num} · ${o.asap?'⚡ 바로 수령 희망':o.time+' 방문 예정'} · 고객 이** (${MY_DONG} 인증 · 노쇼 0회)</div>
+      ${body}</div>`;
+  }).join('');
+}
+function approveOrder(num){
+  const o=orders.find(x=>x.num===num);
+  const sel=$('eta-'+num);
+  o.eta=sel?sel.value:defaultEta;
+  o.status='confirmed';
+  notify('p','✅ 주문 승인 — '+pharm(o.pharmId).name+' · 예상 픽업 시간: '+o.eta);
+  renderAll();
+  toast('주문 승인 — 고객에게 예상 픽업 시간('+o.eta+') 안내 발송');
+}
+function setStatus(num,s){
+  const o=orders.find(x=>x.num===num);o.status=s;renderAll();
+  if(s==='ready') notify('p','📦 픽업 준비 완료! — '+pharm(o.pharmId).name+' · 지금 방문해 수령하세요 (주문 '+o.num+')');
+  if(s==='rejected') notify('p','❌ 주문 불가 — '+pharm(o.pharmId).name+' · 재고 소진. 예약금 1,000원 자동 환불');
+  const msg={ready:'픽업 준비 완료 — 고객에게 알림 발송',rejected:'주문 거절 — 예약금 자동 환불 처리',done:'픽업 완료 처리됨'};
+  toast(msg[s]||'');
+}
+function invView(){
+  const inv=PRODUCTS.map(p=>{
+    const s=stock[1][p.id];
+    const pr=price(1,p.id), off=dealOff(1,p.id);
+    return `<div class="inv-row">
+      <div><div class="inv-name">${p.name}</div>
+      <div class="inv-meta">${p.type} · ${s?'판매가 '+won(pr):'미등록'}${off?' · <b style="color:var(--red)">🎁 픽업할인 −'+won(off)+'</b>':''}${s==='low'?' · <b style="color:var(--amber)">소량</b>':''}</div></div>
+      <div class="toggle ${s?'on':''}" onclick="toggleStock(${p.id})"></div>
+    </div>`;}).join('');
+  return `<div class="section-title">⚙️ 픽업 운영 설정</div>
+  <div class="card">
+    <div class="inv-name">기본 예상 픽업 준비 시간</div>
+    <div class="inv-meta" style="margin-bottom:6px">주문 승인 화면에 기본값으로 표시됩니다. 승인 시 주문별로 변경 가능해요.</div>
+    <select class="time-sel" style="margin:0" onchange="defaultEta=this.value;toast('기본 준비 시간이 \\''+this.value+'\\'로 저장되었습니다')">
+      ${ETAS.map(e=>`<option ${e===defaultEta?'selected':''}>${e}</option>`).join('')}
+    </select>
+  </div>
+  <div class="section-title">📦 재고·가격 관리 <span style="font-weight:400">(보유/품절 토글)</span></div>
+  <div class="card">${inv}</div>
+  <button class="btn outline" onclick="toast('바코드 스캔 화면 (데모) — KD코드 스캔 시 자동 등록')">📷 바코드 스캔으로 제품 추가</button>
+  <button class="btn outline" onclick="toast('픽업 할인 설정 화면 (데모) — 상품별 할인액 지정')">🎁 픽업 할인 설정</button>
+  <div class="notice">ℹ️ 판매가는 우리 약국이 직접 등록하며, 동네 인증을 마친 지역 고객에게만 공개됩니다.<br>픽업 할인은 확정 수요(예약 주문)에 대한 보상으로 자유롭게 설정할 수 있어요.</div>`;
+}
+function stockArrived(id){
+  const r=requests.find(x=>x.id===id); if(!r) return;
+  requests=requests.filter(x=>x.id!==id);
+  notify('p','📦 입고 알림 — '+pharm(r.pharmId).name+'에 요청하신 "'+r.text+'"이(가) 입고되었습니다!');
+  renderAll();
+  toast('입고 처리 완료 — 요청 고객에게 알림 발송 → 환자 앱 🔔 확인');
+}
+function toggleStock(pid){
+  if(stock[1][pid]) delete stock[1][pid]; else stock[1][pid]='in';
+  renderPharm();toast('재고 상태가 변경되었습니다 — 환자 앱에 즉시 반영');
+}
+function insightView(){
+  const data=[['임팩타민',34,140],['센텔리안24 크림',27,110],['케어리브 밴드',19,80],['닥터마밍 연고',12,52]];
+  const myReqs=requests.filter(r=>r.pharmId===1);
+  return `<div class="section-title">📊 우리 동네 수요 인사이트 (최근 7일)</div>
+  ${myReqs.length?`<div class="card" style="border-color:var(--teal)">
+    <div class="prod-meta" style="line-height:1.8;margin-bottom:6px"><b style="color:var(--teal)">🙋 고객 상품 추가 요청 ${myReqs.length}건</b></div>
+    ${myReqs.map(r=>`<div class="inv-row">
+      <div><div class="inv-name">${r.text}</div><div class="inv-meta">${r.time}</div></div>
+      <button class="btn small outline" onclick="stockArrived(${r.id})">✓ 입고 처리</button>
+    </div>`).join('')}
+    <div class="inv-meta" style="margin-top:6px">입고 처리 시 요청 고객에게 입고 알림이 발송됩니다.</div>
+  </div>`:''}
+  <div class="card">
+    <div class="prod-meta" style="margin-bottom:10px;line-height:1.6"><b style="color:var(--red)">놓친 검색</b> — 우리 약국을 선택한 고객이 검색했지만<br>재고가 없던(또는 미등록) 제품</div>
+    ${data.map(d=>`<div class="insight-bar"><span class="lbl">${d[0]}</span><div class="bar" style="width:${d[2]}px"></div><span class="cnt">${d[1]}회</span></div>`).join('')}
+  </div>
+  <div class="card"><div class="prod-meta" style="line-height:1.7">💡 <b>구색 제안</b><br>"센텔리안24 마데카크림"은 반경 500m 내 보유 약국이 1곳뿐입니다. 입고 시 노출 기회가 높아요.</div></div>
+  <div class="card"><div class="prod-meta" style="line-height:1.7">📈 <b>이번 주 우리 약국</b><br>약국 선택 89회 · 주문 ${orders.filter(o=>o.pharmId===1).length+8}건 · 픽업 전환율 78% · 🎁 할인 상품 주문 비중 41%</div></div>`;
+}
+
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+/* 팜들리 공통 스타일 — 프로토타입 v0.4 색상 그대로 */
+:root {
+  --teal: #1b6e5e;
+  --teal-light: #e6f4f1;
+  --bg: #f4f6f5;
+  --card: #fff;
+  --dark: #222;
+  --gray: #777;
+  --line: #e3e8e6;
+  --amber: #c77b00;
+  --amber-bg: #fff4e0;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+  --green: #1e8e3e;
+  --green-bg: #e6f4ea;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+body { background: var(--bg); max-width: 430px; margin: 0 auto; min-height: 100vh; }
+
+.topbar { background: var(--teal); color: #fff; padding: 16px; position: sticky; top: 0; z-index: 10; }
+.topbar .brand { font-size: 18px; font-weight: 800; }
+.topbar small { font-weight: 400; font-size: 12px; opacity: 0.85; display: block; margin-top: 3px; }
+.content { padding: 14px; padding-bottom: 90px; }
+.card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--line); }
+.card.sel { border: 2px solid var(--teal); background: var(--teal-light); }
+.section-title { font-size: 13px; font-weight: 800; color: var(--gray); margin: 16px 2px 8px; }
+.btn { display: block; width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--teal); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+.btn.amber { background: #ffb300; color: #222; }
+.btn.outline { background: #fff; border: 1.5px solid var(--teal); color: var(--teal); }
+.btn.red { background: var(--red-bg); color: var(--red); }
+.btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; display: inline-block; margin-top: 0; }
+.add-btn { padding: 7px 13px; border-radius: 10px; border: 1.5px solid var(--teal); background: #fff; color: var(--teal); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.add-btn.added { background: var(--teal); color: #fff; }
+.tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-right: 4px; }
+.tag.otc { background: var(--teal-light); color: var(--teal); }
+.tag.deal { background: var(--red-bg); color: var(--red); }
+.row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.name { font-size: 15px; font-weight: 700; }
+.meta { font-size: 12px; color: var(--gray); margin-top: 3px; line-height: 1.5; }
+.price { font-size: 13px; font-weight: 800; margin-top: 5px; }
+.price s { color: #aaa; font-weight: 400; font-size: 11.5px; margin-right: 4px; }
+.banner { border-radius: 12px; padding: 12px 14px; font-size: 13px; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+.banner.requested { background: var(--amber-bg); color: var(--amber); }
+.banner.confirmed { background: var(--teal-light); color: var(--teal); }
+.banner.ready { background: var(--green-bg); color: var(--green); }
+.banner.done { background: #eee; color: #555; }
+.banner.rejected { background: var(--red-bg); color: var(--red); }
+.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; display: flex; background: #fff; border-top: 1px solid var(--line); }
+.tabbar button { flex: 1; padding: 10px 4px 14px; background: none; border: none; font-size: 11px; color: var(--gray); cursor: pointer; }
+.tabbar button.on { color: var(--teal); font-weight: 700; }
+.tabbar .ic { font-size: 18px; display: block; margin-bottom: 2px; }
+.empty { text-align: center; color: var(--gray); font-size: 13px; padding: 40px 10px; line-height: 1.7; }
+.notice { font-size: 11.5px; color: var(--gray); background: var(--teal-light); border-radius: 10px; padding: 10px 12px; line-height: 1.6; margin-top: 12px; }
+select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px solid var(--line); font-size: 14px; background: #fff; margin-top: 6px; }
+.total { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; padding: 10px 4px 2px; }
+.subline { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray); padding: 2px 4px; }
+.toast { position: fixed; bottom: 86px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 13px; padding: 11px 20px; border-radius: 24px; z-index: 99; white-space: nowrap; transition: opacity .3s; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+.chip { padding: 6px 12px; border-radius: 16px; background: #fff; border: 1px solid var(--line); font-size: 12px; cursor: pointer; }
+.chip.on { border-color: var(--teal); color: var(--teal); font-weight: 700; }
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.cat-btn { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 4px; text-align: center; cursor: pointer; }
+.cat-btn.on { border-color: var(--teal); background: var(--teal-light); }
+.cat-btn .ce { font-size: 18px; }
+.cat-btn .cn { font-size: 10.5px; font-weight: 700; margin-top: 3px; }
+.qty-mini { display: flex; align-items: center; gap: 8px; }
+.qty-mini button { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; font-size: 15px; cursor: pointer; color: var(--teal); font-weight: 700; line-height: 1; }
+.qty-mini span { font-size: 14px; font-weight: 800; min-width: 18px; text-align: center; }
+.bell { position: relative; cursor: pointer; font-size: 19px; }
+.bell .cnt { position: absolute; top: -6px; right: -9px; background: var(--red); color: #fff; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+.notif-panel { position: fixed; top: 64px; right: max(10px, calc(50% - 205px)); width: 300px; max-height: 320px; overflow-y: auto; background: #fff; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.2); z-index: 60; padding: 6px 12px; border: 1px solid var(--line); }
+.notif-item { padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 12.5px; line-height: 1.55; }
+.notif-item:last-child { border-bottom: none; }
+.price-lock { font-size: 12px; color: var(--amber); font-weight: 700; margin-top: 5px; cursor: pointer; }
+.banner.verify { background: var(--amber-bg); color: var(--amber); border: 1px solid #f0d9a8; }
+
+/* ---------- splash / auth / verify / home (앱 시작 흐름) ---------- */
+.splash-screen, .auth-screen, .gate-screen, .home-screen {
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; text-align: center; background: var(--teal);
+}
+.auth-screen, .gate-screen, .home-screen { background: var(--bg); justify-content: flex-start; padding-top: 60px; }
+.splash-screen .mascot { position: relative; width: 180px; height: 227px; }
+.splash-screen .mascot-body { position: absolute; top: 0; left: 0; width: 180px; height: 227px; object-fit: contain; }
+.splash-screen .mascot-arm {
+  position: absolute; width: 59px; height: 72px; object-fit: contain;
+  left: 122px; top: 28px;
+  transform-origin: 10% 97%;
+  animation: mascot-wave 0.9s ease-in-out infinite;
+}
+@keyframes mascot-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(14deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-8deg); }
+}
+.splash-screen .brand-big { color: #fff; font-size: 26px; font-weight: 800; margin-top: 14px; }
+.splash-screen .tagline { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 6px; }
+
+.auth-screen .mascot-sm, .gate-screen .mascot-sm { font-size: 48px; margin-bottom: 8px; }
+.auth-screen h1, .gate-screen h1, .home-screen h1 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.auth-screen p, .gate-screen p, .home-screen p { font-size: 13px; color: var(--gray); margin-bottom: 18px; line-height: 1.6; }
+.auth-screen .card, .gate-screen .card { width: 100%; max-width: 340px; text-align: left; }
+.auth-tabs { display: flex; gap: 8px; margin-bottom: 14px; width: 100%; max-width: 340px; }
+.auth-tabs .chip { flex: 1; text-align: center; }
+
+.home-screen .home-icon-grid { display: flex; gap: 14px; width: 100%; max-width: 360px; margin-top: 6px; }
+.home-icon-card {
+  flex: 1; background: #fff; border: 1.5px solid var(--line); border-radius: 16px;
+  padding: 26px 10px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.home-icon-card:hover, .home-icon-card:active { border-color: var(--teal); background: var(--teal-light); }
+.home-icon-card .hi-emoji { font-size: 38px; display: block; margin-bottom: 10px; }
+.home-icon-card .hi-label { font-size: 14px; font-weight: 800; color: var(--dark); }
+.home-icon-card .hi-sub { font-size: 11px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
