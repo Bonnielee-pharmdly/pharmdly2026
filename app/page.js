@@ -302,7 +302,7 @@ export default function PatientApp() {
     if (!asap && new Date(when) < new Date()) { showToast("지난 시간은 선택할 수 없어요"); return; }
     try {
       await addOrder({
-        num: "P-" + Date.now().toString().slice(-6),
+        num: "P-" + String(Math.floor(1000 + Math.random() * 9000)),
         pharmId: selPharm, pharmName: pharm?.name || "약국", time: timeLabel(), status: "requested", eta: null,
         items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.price, product_id: i.productId || null })),
         total: cart.reduce((s, i) => s + i.price * i.qty, 0),
@@ -887,15 +887,12 @@ export default function PatientApp() {
                   <div className="total"><span>합계</span><span>{won(o.total)}</span></div>
                   {o.eta && <div className="banner confirmed" style={{ marginTop: 8 }}>🕒 예상 픽업 시간: <b>{o.eta}</b></div>}
                   {showQR && (
-                    <div style={{ textAlign: "center", margin: "14px 0 4px", padding: "14px", background: "#f8fff8", borderRadius: 10, border: "1px solid #c8e6c9" }}>
-                      <div style={{ fontSize: 13, color: "#2e7d32", fontWeight: 600, marginBottom: 10 }}>📱 약국 카운터에서 이 QR을 스캔해주세요</div>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(o.num)}&margin=6`}
-                        alt="픽업 QR"
-                        style={{ width: 180, height: 180, borderRadius: 8, display: "block", margin: "0 auto" }}
-                      />
-                      <div style={{ fontSize: 12, color: "#888", marginTop: 8 }}>주문번호: <b>{o.num}</b></div>
+                    <div style={{ textAlign: "center", margin: "14px 0 4px", padding: "18px 14px", background: "#f8fff8", borderRadius: 10, border: "1px solid #c8e6c9" }}>
+                      <div style={{ fontSize: 13, color: "#2e7d32", fontWeight: 600, marginBottom: 12 }}>💊 약국 카운터에 이 번호를 알려주세요</div>
+                      <div style={{ fontSize: 56, fontWeight: 800, color: "#1b5e20", letterSpacing: 6, lineHeight: 1 }}>
+                        {o.num.replace("P-", "")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#888", marginTop: 10 }}>픽업번호 (주문번호: {o.num})</div>
                     </div>
                   )}
                   {o.status === "ready" && (
