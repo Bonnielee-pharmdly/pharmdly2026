@@ -80,9 +80,9 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
   padding: 24px; text-align: center; background: var(--teal);
 }
 .auth-screen, .gate-screen, .home-screen { background: var(--bg); justify-content: flex-start; padding-top: 60px; }
-.splash-screen .mascot { position: relative; width: 180px; height: 237px; }
+.splash-screen .mascot { position: relative; width: 240px; height: 308px; }
 .splash-screen .mascot-body {
-  position: absolute; top: 0; left: 0; width: 180px; height: 237px; object-fit: contain;
+  position: absolute; top: 0; left: 0; width: 240px; height: 308px; object-fit: contain;
 }
 .splash-screen .brand-big { color: #fff; font-size: 26px; font-weight: 800; margin-top: 14px; }
 .splash-screen .tagline { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 6px; }

@@ -1,74 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 310">
-  <defs>
-    <clipPath id="dome">
-      <rect x="0" y="0" width="220" height="168"/>
-    </clipPath>
-    <style>
-      @keyframes bob {
-        0%,100%{ transform: translateY(0px) rotate(3deg); }
-        50%{ transform: translateY(-10px) rotate(-2deg); }
-      }
-      @keyframes wave {
-        0%,100%{ transform: rotate(0deg); }
-        40%{ transform: rotate(26deg); }
-        75%{ transform: rotate(-8deg); }
-      }
-      @keyframes ll {
-        0%,100%{ transform: rotate(20deg); }
-        50%{ transform: rotate(-20deg); }
-      }
-      @keyframes lr {
-        0%,100%{ transform: rotate(-18deg); }
-        50%{ transform: rotate(18deg); }
-      }
-      .bg { animation: bob  0.9s ease-in-out infinite; transform-origin: 113px 232px; }
-      .aw { animation: wave 0.9s ease-in-out infinite; transform-origin: 180px 160px; }
-      .leg-l { animation: ll 0.9s ease-in-out infinite; transform-origin: 100px 252px; }
-      .leg-r { animation: lr 0.9s ease-in-out infinite; transform-origin: 130px 252px; }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 900">
+  <g transform="translate(50,20) rotate(-8 350 440)">
 
-  <!-- Legs (behind body) -->
-  <g class="leg-r">
-    <path d="M130,252 Q143,270 148,292" stroke="#1C7A63" stroke-width="25" stroke-linecap="round" fill="none"/>
-  </g>
-  <g class="leg-l">
-    <path d="M100,252 Q87,270 82,292" stroke="#1C7A63" stroke-width="25" stroke-linecap="round" fill="none"/>
-  </g>
+    <!-- 발 (몸통 뒤) -->
+    <path d="M305 720 Q 278 778 262 838" fill="none" stroke="#1F7263" stroke-width="58" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="rotate"
+        values="13 305 720; -13 305 720; 13 305 720"
+        keyTimes="0; 0.5; 1" dur="1.0s" repeatCount="indefinite"
+        calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+    </path>
+    <path d="M425 720 Q 452 776 468 834" fill="none" stroke="#1F7263" stroke-width="58" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="rotate"
+        values="-13 425 720; 13 425 720; -13 425 720"
+        keyTimes="0; 0.5; 1" dur="1.0s" repeatCount="indefinite"
+        calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+    </path>
 
-  <g class="bg">
+    <!-- 몸통 틸 (아래) -->
+    <path d="M242 470 H502 V618 A120 120 0 0 1 242 618 Z" fill="#1F7263"/>
+    <!-- 머리 흰색 (위) -->
+    <path d="M242 470 H502 V342 A120 120 0 0 0 242 342 Z" fill="#FFFFFF"/>
+    <!-- 이음선 -->
+    <rect x="242" y="464" width="260" height="13" rx="6" fill="#E0EBE8"/>
+    <!-- 눈 -->
+    <circle cx="318" cy="390" r="18" fill="#33312C"/>
+    <circle cx="426" cy="390" r="18" fill="#33312C"/>
+    <!-- 미소 -->
+    <path d="M328 432 Q 372 466 416 432" fill="none" stroke="#33312C" stroke-width="15" stroke-linecap="round"/>
+    <!-- 볼터치 -->
+    <circle cx="285" cy="425" r="15" fill="#FAD7A6"/>
+    <circle cx="459" cy="425" r="15" fill="#FAD7A6"/>
 
-    <!-- Teal capsule body — round and plump (rx:ry ≈ 0.68) -->
-    <ellipse cx="113" cy="162" rx="70" ry="103" fill="#1C7A63"/>
+    <!-- 왼팔 (틸) -->
+    <path d="M242 510 Q 175 555 160 618" fill="none" stroke="#1F7263" stroke-width="44" stroke-linecap="round"/>
 
-    <!-- White dome (top half, clipped) -->
-    <ellipse cx="113" cy="162" rx="70" ry="103" fill="white" clip-path="url(#dome)"/>
+    <!-- 쇼핑백 -->
+    <rect x="80" y="612" width="136" height="140" rx="15" fill="white"/>
+    <path d="M106 612 Q 106 576 148 576 Q 190 576 190 612" fill="none" stroke="#333" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="106" cy="612" r="8" fill="#333"/>
+    <circle cx="190" cy="612" r="8" fill="#333"/>
+    <!-- 캡슐 아이콘 -->
+    <rect x="98" y="660" width="96" height="44" rx="22" fill="#1F7263" transform="rotate(-10 146 682)"/>
+    <rect x="96" y="658" width="54" height="48" rx="22" fill="#F05A38" transform="rotate(-10 146 682)"/>
 
-    <!-- Seam -->
-    <rect x="43" y="163" width="140" height="10" rx="5" fill="#D0D0D0"/>
-
-    <!-- Left arm: TEAL stub, holds bag -->
-    <path d="M50,193 Q38,214 34,238" stroke="#1C7A63" stroke-width="23" stroke-linecap="round" fill="none"/>
-
-    <!-- Bag -->
-    <rect x="4" y="228" width="52" height="58" rx="10" fill="white"/>
-    <!-- Handle -->
-    <path d="M15,228 Q15,212 30,212 Q45,212 45,228" stroke="#555" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <!-- Pill icon -->
-    <rect x="12" y="249" width="34" height="16" rx="8" fill="#1C7A63" transform="rotate(-8,29,257)"/>
-    <rect x="12" y="249" width="17" height="16" rx="8" fill="white" transform="rotate(-8,29,257)"/>
-
-    <!-- Right arm: WHITE thin curved wave -->
-    <g class="aw">
-      <path d="M178,155 Q200,120 207,88" stroke="white" stroke-width="16" stroke-linecap="round" fill="none"/>
-    </g>
-
-    <!-- Face -->
-    <circle cx="100" cy="118" r="9" fill="#111"/>
-    <circle cx="126" cy="118" r="9" fill="#111"/>
-    <circle cx="87"  cy="139" r="12" fill="#FFAA6A" opacity="0.5"/>
-    <circle cx="139" cy="139" r="12" fill="#FFAA6A" opacity="0.5"/>
-    <path d="M97,150 Q113,168 129,150" stroke="#111" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 오른팔 (흰색, 흔들기) -->
+    <path d="M502 492 Q 592 448 618 356" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round">
+      <animateTransform
+        attributeName="transform" type="rotate"
+        values="0 502 492; 22 502 492; -10 502 492; 22 502 492; 0 502 492"
+        keyTimes="0; 0.3; 0.65; 0.85; 1"
+        dur="1.2s" repeatCount="indefinite"
+        calcMode="spline"
+        keySplines="0.4 0 0.6 1; 0.4 0 0.6 1; 0.4 0 0.6 1; 0.4 0 0.6 1"/>
+    </path>
 
   </g>
 </svg>
