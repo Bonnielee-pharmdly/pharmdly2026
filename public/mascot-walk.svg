@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 900">
-  <g transform="translate(50,20) rotate(-8 350 440)">
+  <g transform="translate(10,20) rotate(-8 350 440)">
 
     <!-- 발 (몸통 뒤) -->
     <path d="M305 720 Q 278 778 262 838" fill="none" stroke="#1F7263" stroke-width="58" stroke-linecap="round">
