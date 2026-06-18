@@ -81,18 +81,16 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 }
 .auth-screen, .gate-screen, .home-screen { background: var(--bg); justify-content: flex-start; padding-top: 60px; }
 .splash-screen .mascot { position: relative; width: 180px; height: 227px; }
-.splash-screen .mascot-body { position: absolute; top: 0; left: 0; width: 180px; height: 227px; object-fit: contain; }
-.splash-screen .mascot-arm {
-  position: absolute; width: 59px; height: 72px; object-fit: contain;
-  left: 122px; top: 28px;
-  transform-origin: 10% 97%;
-  animation: mascot-wave 0.9s ease-in-out infinite;
+.splash-screen .mascot-body {
+  position: absolute; top: 0; left: 0; width: 180px; height: 227px; object-fit: contain;
+  transform-origin: 50% 100%;
+  animation: mascot-wave 1.2s ease-in-out infinite;
 }
 @keyframes mascot-wave {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(14deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(-8deg); }
+  0%, 100% { transform: rotate(0deg) translateY(0px); }
+  25% { transform: rotate(4deg) translateY(-4px); }
+  50% { transform: rotate(0deg) translateY(-6px); }
+  75% { transform: rotate(-4deg) translateY(-4px); }
 }
 .splash-screen .brand-big { color: #fff; font-size: 26px; font-weight: 800; margin-top: 14px; }
 .splash-screen .tagline { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 6px; }
