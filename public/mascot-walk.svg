@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 310">
+  <defs>
+    <clipPath id="dome">
+      <rect x="0" y="0" width="220" height="168"/>
+    </clipPath>
+    <style>
+      @keyframes bob {
+        0%,100%{ transform: translateY(0px) rotate(3deg); }
+        50%{ transform: translateY(-10px) rotate(-2deg); }
+      }
+      @keyframes wave {
+        0%,100%{ transform: rotate(0deg); }
+        40%{ transform: rotate(26deg); }
+        75%{ transform: rotate(-8deg); }
+      }
+      @keyframes ll {
+        0%,100%{ transform: rotate(20deg); }
+        50%{ transform: rotate(-20deg); }
+      }
+      @keyframes lr {
+        0%,100%{ transform: rotate(-18deg); }
+        50%{ transform: rotate(18deg); }
+      }
+      .bg { animation: bob  0.9s ease-in-out infinite; transform-origin: 113px 232px; }
+      .aw { animation: wave 0.9s ease-in-out infinite; transform-origin: 180px 160px; }
+      .leg-l { animation: ll 0.9s ease-in-out infinite; transform-origin: 100px 252px; }
+      .leg-r { animation: lr 0.9s ease-in-out infinite; transform-origin: 130px 252px; }
+    </style>
+  </defs>
+
+  <!-- Legs (behind body) -->
+  <g class="leg-r">
+    <path d="M130,252 Q143,270 148,292" stroke="#1C7A63" stroke-width="25" stroke-linecap="round" fill="none"/>
+  </g>
+  <g class="leg-l">
+    <path d="M100,252 Q87,270 82,292" stroke="#1C7A63" stroke-width="25" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <g class="bg">
+
+    <!-- Teal capsule body — round and plump (rx:ry ≈ 0.68) -->
+    <ellipse cx="113" cy="162" rx="70" ry="103" fill="#1C7A63"/>
+
+    <!-- White dome (top half, clipped) -->
+    <ellipse cx="113" cy="162" rx="70" ry="103" fill="white" clip-path="url(#dome)"/>
+
+    <!-- Seam -->
+    <rect x="43" y="163" width="140" height="10" rx="5" fill="#D0D0D0"/>
+
+    <!-- Left arm: TEAL stub, holds bag -->
+    <path d="M50,193 Q38,214 34,238" stroke="#1C7A63" stroke-width="23" stroke-linecap="round" fill="none"/>
+
+    <!-- Bag -->
+    <rect x="4" y="228" width="52" height="58" rx="10" fill="white"/>
+    <!-- Handle -->
+    <path d="M15,228 Q15,212 30,212 Q45,212 45,228" stroke="#555" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- Pill icon -->
+    <rect x="12" y="249" width="34" height="16" rx="8" fill="#1C7A63" transform="rotate(-8,29,257)"/>
+    <rect x="12" y="249" width="17" height="16" rx="8" fill="white" transform="rotate(-8,29,257)"/>
+
+    <!-- Right arm: WHITE thin curved wave -->
+    <g class="aw">
+      <path d="M178,155 Q200,120 207,88" stroke="white" stroke-width="16" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Face -->
+    <circle cx="100" cy="118" r="9" fill="#111"/>
+    <circle cx="126" cy="118" r="9" fill="#111"/>
+    <circle cx="87"  cy="139" r="12" fill="#FFAA6A" opacity="0.5"/>
+    <circle cx="139" cy="139" r="12" fill="#FFAA6A" opacity="0.5"/>
+    <path d="M97,150 Q113,168 129,150" stroke="#111" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  </g>
+</svg>

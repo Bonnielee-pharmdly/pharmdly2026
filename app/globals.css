@@ -1,12 +1,12 @@
 /* 팜들리 공통 스타일 — 프로토타입 v0.4 색상 그대로 */
 :root {
-  --teal: #1b6e5e;
-  --teal-light: #e6f4f1;
-  --bg: #f4f6f5;
+  --teal: #F05A38;
+  --teal-light: #FEF0E8;
+  --bg: #faf6f4;
   --card: #fff;
   --dark: #222;
   --gray: #777;
-  --line: #e3e8e6;
+  --line: #f0e8e3;
   --amber: #c77b00;
   --amber-bg: #fff4e0;
   --red: #c0392b;
@@ -80,17 +80,9 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
   padding: 24px; text-align: center; background: var(--teal);
 }
 .auth-screen, .gate-screen, .home-screen { background: var(--bg); justify-content: flex-start; padding-top: 60px; }
-.splash-screen .mascot { position: relative; width: 180px; height: 227px; }
+.splash-screen .mascot { position: relative; width: 180px; height: 237px; }
 .splash-screen .mascot-body {
-  position: absolute; top: 0; left: 0; width: 180px; height: 227px; object-fit: contain;
-  transform-origin: 50% 100%;
-  animation: mascot-wave 1.2s ease-in-out infinite;
-}
-@keyframes mascot-wave {
-  0%, 100% { transform: rotate(0deg) translateY(0px); }
-  25% { transform: rotate(4deg) translateY(-4px); }
-  50% { transform: rotate(0deg) translateY(-6px); }
-  75% { transform: rotate(-4deg) translateY(-4px); }
+  position: absolute; top: 0; left: 0; width: 180px; height: 237px; object-fit: contain;
 }
 .splash-screen .brand-big { color: #fff; font-size: 26px; font-weight: 800; margin-top: 14px; }
 .splash-screen .tagline { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 6px; }
