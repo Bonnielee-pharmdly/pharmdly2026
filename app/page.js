@@ -333,7 +333,7 @@ export default function PatientApp() {
       <div className="splash-screen">
         <div className="mascot">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/mascot-walk.svg" alt="캡슐 프렌드" className="mascot-body" />
+          <img src="/mascot-v2.svg" alt="캡슐 프렌드" className="mascot-body" />
         </div>
         <div className="brand-big">팜들리</div>
         <div className="tagline">캡슐 프렌드가 인사를 건네요 — 잠시만 기다려주세요!</div>
