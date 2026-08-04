@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProduct } from './actions';
-import { PRODUCT_TYPES } from '@/lib/admin/product-types';
+import { PRODUCT_TYPES, PRODUCT_TYPE_SHORT_LABEL } from '@/lib/admin/product-types';
 import { Button, Card, Input, Select } from '../_components/ui';
 
 const EMPTY = {
@@ -57,7 +57,7 @@ export function NewProduct() {
       <Select value={form.product_type} onChange={(e) => set('product_type', e.target.value)}>
         <option value="">미분류</option>
         {PRODUCT_TYPES.map((t) => (
-          <option key={t} value={t}>{t}</option>
+          <option key={t} value={t}>{PRODUCT_TYPE_SHORT_LABEL[t]}</option>
         ))}
       </Select>
       <Button variant="primary" onClick={submit} disabled={pending}>

@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin, logAdminAction } from '@/lib/admin/auth';
 import { createServiceClient } from '@/lib/admin/service-client';
-import { PRODUCT_TYPES } from '@/lib/admin/product-types';
+import { PRODUCT_TYPES, SORT_KEYS, type SortKey, type SortDir } from '@/lib/admin/product-types';
+export type { SortKey, SortDir };
 
 export type Product = {
   product_id: number;
@@ -61,22 +62,30 @@ export async function loadProducts(params: {
   page?: number;
   pageSize?: number;
   status?: ProductStatus;
+  sort?: SortKey;
+  dir?: SortDir;
 }) {
   await requireAdmin();
   const svc = createServiceClient();
 
   const page = Math.max(1, params.page ?? 1);
-  const pageSize = params.pageSize ?? 25;
+  const pageSize = params.pageSize ?? 50;
   const status = params.status ?? 'active';
+  const sort: SortKey = SORT_KEYS.includes(params.sort as SortKey) ? (params.sort as SortKey) : 'created_at';
+  const dir: SortDir = params.dir === 'desc' ? 'desc' : 'asc';
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  // 5,292건 전체를 대상으로 DB에서 정렬 후 range()로 페이지를 자른다 — 페이지 안에서만
+  // 정렬하면 안 된다는 요구사항 그대로. product_id를 항상 2차 정렬로 붙여서(동률이 많은
+  // 컬럼 — 예: 참고가/분류 비어있는 행들) 페이지를 넘겨도 순서가 흔들리지 않게 한다.
   let q = svc
     .from('products')
     .select(
       'product_id, barcode, standard_name, base_name, manufacturer, package_unit, unit_label, reference_price, product_type, image_url, is_active',
       { count: 'exact' },
     )
+    .order(sort, { ascending: dir === 'asc', nullsFirst: false })
     .order('product_id', { ascending: true })
     .range(from, to);
 
@@ -91,7 +100,7 @@ export async function loadProducts(params: {
   const { data, count, error } = await q;
   if (error) throw new Error(error.message);
 
-  return { rows: (data ?? []) as Product[], total: count ?? 0, page, pageSize };
+  return { rows: (data ?? []) as Product[], total: count ?? 0, page, pageSize, sort, dir };
 }
 
 export async function updateProduct(productId: number, fields: EditableFields) {

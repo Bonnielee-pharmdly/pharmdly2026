@@ -22,7 +22,9 @@ export function PageHeader({
   );
 }
 
-const BUTTON_BASE = 'inline-flex items-center justify-center rounded-control text-[14px] font-medium px-[18px] py-[11px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+// 크기별로 패딩을 전부 따로 정의한다(base에 공통 패딩을 두면 같은 CSS 속성을 두 utility
+// 클래스가 같이 지정하게 되어 Tailwind가 어느 걸 먼저 생성하느냐에 따라 결과가 갈릴 수 있음).
+const BUTTON_BASE = 'inline-flex items-center justify-center rounded-control font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 const BUTTON_VARIANT = {
   primary: 'bg-toss-blue text-white hover:bg-toss-blueDark',
   secondary: 'bg-toss-bg text-toss-sub hover:bg-toss-line',
@@ -30,8 +32,9 @@ const BUTTON_VARIANT = {
   ghost: 'text-toss-sub hover:bg-toss-bg',
 } as const;
 const BUTTON_SIZE = {
-  md: '',
+  md: 'px-[18px] py-[11px] text-[14px]',
   sm: 'px-3 py-1.5 text-[13px] rounded-lg',
+  xs: 'px-1.5 py-1 text-[11px] rounded-lg leading-none',
 };
 
 export function Button({
