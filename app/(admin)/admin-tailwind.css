@@ -1,0 +1,37 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * 손님/약국 앱의 app/globals.css가 <body>에 max-width:430px(모바일 폭 고정)를 걸어둔다.
+ * Next.js App Router는 같은 <body>를 재사용하며 클라이언트 라우팅하므로, 이 규칙이
+ * /admin/* 에도 그대로 적용돼 관리자 화면이 좁게 눌린다. #admin-root가 화면에 있을 때만
+ * (즉 /admin/* 을 보고 있을 때만) body의 폭 제한을 풀어준다.
+ */
+body:has(#admin-root) {
+  max-width: none;
+  margin: 0;
+}
+
+/*
+ * 손님/약국 앱의 app/globals.css에는 `* { font-family: "Apple SD Gothic Neo", ... }`
+ * 라는 전역 규칙이 있다. 전체 요소(*)에 직접 지정된 값이라 #admin-root의 font-sans(Pretendard)
+ * 상속보다 우선해버려서, 관리자 화면 안 요소들이 Pretendard 대신 그 폰트로 보인다.
+ * 같은 방식(:has)으로 admin 라우트에서만 되돌린다.
+ */
+body:has(#admin-root) * {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/*
+ * 손님/약국 앱의 app/globals.css에는 `select, input { border: 1.5px solid ...; margin-top: 6px; }`
+ * 같은 전역 규칙이 있다. 토스 스타일은 입력창 테두리를 없애는데(Input/Select 컴포넌트가
+ * border 유틸을 안 쓰다 보니) 이 규칙이 그대로 남아 테두리·여백이 새어 들어온다.
+ */
+body:has(#admin-root) input,
+body:has(#admin-root) select {
+  border: none;
+  margin-top: 0;
+}

@@ -3,3 +3,7 @@ node_modules/
 .next/
 node_modules/
 .next/
+
+# 로컬 비밀 값 (service_role 키 등) — 절대 커밋하지 않습니다.
+.env.local
+.env*.local
