@@ -10,6 +10,7 @@ const MENU = [
   { href: '/admin/products', icon: '📦', label: '마스터데이터' },
   { href: '/admin/pharmacies', icon: '🏥', label: '약국 관리' },
   { href: '/admin/customers', icon: '👤', label: '손님 관리' },
+  { href: '/admin/search-keywords', icon: '🔍', label: '검색 키워드 통계' },
 ];
 
 export function Sidebar({ adminLabel, pendingCount = 0 }: { adminLabel: string; pendingCount?: number }) {
