@@ -2,6 +2,7 @@ import { loadProducts, type ProductStatus } from './actions';
 import { ProductRow } from './product-row';
 import { SearchBar } from './search-bar';
 import { NewProduct } from './new-product';
+import { BulkUploadPanel } from './bulk-upload-panel';
 import { PageHeader, Card, RowList, EmptyState, PillTabs, LinkButton } from '../_components/ui';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,10 @@ export default async function ProductsPage({
         description={`총 ${total.toLocaleString()}건. 약국별 가격은 각 약국이 관리하며, 여기서는 참고가를 설정합니다.`}
         action={<NewProduct />}
       />
+
+      <div className="mb-4">
+        <BulkUploadPanel />
+      </div>
 
       <div className="mb-4 flex items-center justify-between">
         <PillTabs options={TABS} value={status} hrefFor={tabHref} />
