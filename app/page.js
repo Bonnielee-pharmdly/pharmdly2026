@@ -7,7 +7,9 @@ import { PHARMACIES, PRODUCTS, STOCK, price, dealOff, effPrice, won, DEPOSIT } f
 import {
   loadOrders, addOrder, updateOrder, onChange, loadPharmacies, loadInventoryAll,
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
-  getUser, setUser, logout, searchProducts, getInventoryAll,
+  getUser, setUser, signOut, searchProducts, getInventoryAll,
+  signInWithGoogle, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
+  supabase,
 } from "../lib/store";
 
 const STATUS = {
@@ -96,16 +98,41 @@ export default function PatientApp() {
   useEffect(() => {
     const v = getVerified();
     setVerifiedState(v);
-    const u = getUser();
-    setUserState(u);
-    refresh();
-    const timer = setTimeout(() => {
-      if (!u) setStage("auth");
-      else if (!v) setStage("gate");
-      else setStage("home");
-    }, 1400);
+
+    // Supabase Auth 상태 변화 감지 (Google 로그인 콜백 후 자동 처리)
+    const unsubAuth = onAuthChange((sbUser) => {
+      if (sbUser) {
+        const u = userFromSupabase(sbUser);
+        setUser(u);
+        setUserState(u);
+        const ver = getVerified();
+        setVerifiedState(ver);
+        setStage(ver ? "home" : "gate");
+      }
+    });
+
+    async function init() {
+      // Supabase 로그인 상태 우선 확인, 없으면 로컬 fallback
+      let u = null;
+      const sbUser = await getSupabaseUser();
+      if (sbUser) {
+        u = userFromSupabase(sbUser);
+        setUser(u);
+      } else {
+        u = getUser();
+      }
+      setUserState(u);
+      refresh();
+      setTimeout(() => {
+        if (!u) setStage("auth");
+        else if (!v) setStage("gate");
+        else setStage("home");
+      }, 1400);
+    }
+    init();
+
     const off = onChange(refresh);
-    return () => { clearTimeout(timer); off(); };
+    return () => { off(); unsubAuth(); };
   }, []);
 
   function verifyArea() {
@@ -114,18 +141,47 @@ export default function PatientApp() {
     showToast("📍 동네 인증 완료! 실제 판매가가 공개됩니다");
   }
 
-  function submitAuth() {
+  async function submitAuth() {
     if (!authEmail.trim() || !authPw.trim() || (authMode === "signup" && !authName.trim())) {
       showToast("필수 정보를 입력해주세요"); return;
     }
-    const u = { name: authMode === "signup" ? authName.trim() : (authName.trim() || "팜들리 회원"), email: authEmail.trim() };
-    setUser(u);
-    setUserState(u);
-    setStage(getVerified() ? "home" : "gate");
+    if (supabase) {
+      try {
+        let sbUser;
+        if (authMode === "signup") {
+          sbUser = await signUpWithEmail(authEmail.trim(), authPw.trim(), authName.trim());
+          showToast("가입 완료! 이메일 인증 없이 바로 로그인됩니다");
+        } else {
+          sbUser = await signInWithEmail(authEmail.trim(), authPw.trim());
+        }
+        const u = userFromSupabase(sbUser) || { name: authName.trim() || "팜들리 회원", email: authEmail.trim() };
+        setUser(u);
+        setUserState(u);
+        setStage(getVerified() ? "home" : "gate");
+      } catch (e) {
+        showToast(e.message || "로그인 실패. 이메일/비밀번호를 확인해주세요");
+      }
+    } else {
+      // 데모 모드 (Supabase 미연결)
+      const u = { name: authMode === "signup" ? authName.trim() : (authName.trim() || "팜들리 회원"), email: authEmail.trim() };
+      setUser(u);
+      setUserState(u);
+      setStage(getVerified() ? "home" : "gate");
+    }
   }
 
-  function doLogout() {
-    logout();
+  async function handleGoogleLogin() {
+    if (!supabase) { showToast("클라우드 모드에서만 사용 가능합니다"); return; }
+    try {
+      await signInWithGoogle();
+      // 이후는 Google → /auth/callback → onAuthChange가 처리
+    } catch (e) {
+      showToast("구글 로그인 실패: " + e.message);
+    }
+  }
+
+  async function doLogout() {
+    await signOut();
     setUserState(null);
     setAuthMode("login");
     setAuthEmail("");
@@ -355,6 +411,22 @@ export default function PatientApp() {
         <div className="mascot-sm">💊</div>
         <h1>팜들리에 오신 걸 환영해요</h1>
         <p>회원가입 또는 로그인 후 동네 인증을 하면<br />주변 약국의 실제 판매가를 확인할 수 있어요.</p>
+
+        {/* 소셜 로그인 */}
+        <div style={{ width: "100%", maxWidth: 340, marginBottom: 6 }}>
+          <button className="btn-social" onClick={handleGoogleLogin}>
+            <svg width="18" height="18" viewBox="0 0 48 48" style={{ marginRight: 8, flexShrink: 0 }}>
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Google로 계속하기
+          </button>
+        </div>
+
+        <div className="auth-divider"><span>또는 이메일로</span></div>
+
         <div className="auth-tabs">
           <span className={"chip" + (authMode === "login" ? " on" : "")} onClick={() => setAuthMode("login")}>로그인</span>
           <span className={"chip" + (authMode === "signup" ? " on" : "")} onClick={() => setAuthMode("signup")}>회원가입</span>
@@ -366,7 +438,6 @@ export default function PatientApp() {
           <input placeholder="이메일" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} style={authMode === "signup" ? {} : { marginTop: 0 }} />
           <input placeholder="비밀번호" type="password" value={authPw} onChange={(e) => setAuthPw(e.target.value)} />
           <button className="btn" onClick={submitAuth}>{authMode === "signup" ? "회원가입하고 시작하기" : "로그인"}</button>
-          <div className="notice" style={{ marginTop: 10 }}>데모 화면입니다. 실제 인증(이메일 확인 등)은 Supabase Auth 연동 시 추가됩니다.</div>
         </div>
       </div>
     );
