@@ -79,27 +79,25 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
   min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 24px; text-align: center; background: var(--teal);
 }
-.splash-screen { background: #1b6e5e; position: relative; }
+.splash-screen { background: var(--bg); position: relative; }
 .auth-screen, .gate-screen, .home-screen { background: var(--bg); justify-content: flex-start; padding-top: 60px; }
 .splash-screen .mascot { position: relative; width: 240px; height: 308px; }
 .splash-screen .mascot-body {
   position: absolute; top: 0; left: 0; width: 240px; height: 308px; object-fit: contain;
 }
-.splash-screen .brand-big { color: #fff; font-size: 26px; font-weight: 800; margin-top: 14px; }
-.splash-screen .tagline { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 6px; }
+.splash-screen .brand-big { color: var(--dark); font-size: 26px; font-weight: 800; margin-top: 14px; }
 .splash-ad {
-  position: absolute; bottom: 28px; left: 16px; right: 16px;
-  background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.3); border-radius: 14px;
-  padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
+  margin-top: 20px; width: 100%; max-width: 340px;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
 }
 .splash-ad-label {
-  font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6);
+  font-size: 9px; font-weight: 800; color: var(--gray);
   letter-spacing: 1px;
 }
 .splash-ad-content { display: flex; align-items: center; gap: 10px; }
-.splash-ad-title { font-size: 13px; font-weight: 700; color: #fff; }
-.splash-ad-sub { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+.splash-ad-title { font-size: 13px; font-weight: 700; color: var(--dark); }
+.splash-ad-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
 
 .auth-screen .mascot-sm, .gate-screen .mascot-sm { font-size: 48px; margin-bottom: 8px; }
 .auth-screen h1, .gate-screen h1, .home-screen h1 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
