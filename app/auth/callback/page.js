@@ -1,9 +1,9 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/store";
 
-export default function AuthCallback() {
+function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -18,10 +18,17 @@ export default function AuthCallback() {
     handleCallback();
   }, []);
 
+  return null;
+}
+
+export default function AuthCallback() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#faf6f4", flexDirection: "column", gap: 12 }}>
       <div style={{ fontSize: 36 }}>💊</div>
       <div style={{ fontSize: 14, color: "#777" }}>로그인 중...</div>
+      <Suspense>
+        <CallbackHandler />
+      </Suspense>
     </div>
   );
 }
