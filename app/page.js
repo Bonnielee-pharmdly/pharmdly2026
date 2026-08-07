@@ -337,6 +337,15 @@ export default function PatientApp() {
         </div>
         <div className="brand-big">팜들리</div>
         <div className="tagline">캡슐 프렌드가 인사를 건네요 — 잠시만 기다려주세요!</div>
+        <div className="splash-ad">
+          <div className="splash-ad-label">AD</div>
+          <div className="splash-ad-content">
+            <div className="splash-ad-text">
+              <div className="splash-ad-title">내 주변 약국 재고, 지금 바로 확인</div>
+              <div className="splash-ad-sub">팜들리와 함께하는 약국을 찾아보세요</div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -451,7 +460,7 @@ export default function PatientApp() {
             <div className="section-title">🏥 내 주변 약국</div>
             {!regPharms.length && (
               <div className="notice" style={{ marginBottom: 10 }}>
-                💡 <Link href="/pharmacy">약국용 화면</Link>에서 약국·상품을 등록하면 여기 맨 위에 나타나요. 아래는 연습용 예시입니다.
+                💡 <Link href="/pharmacy">약국용 화면</Link>에서 약국·상품을 등록하면 여기 맨 위에 나타나요.
               </div>
             )}
             {pharmList.map((ph) => (
