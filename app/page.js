@@ -135,10 +135,37 @@ export default function PatientApp() {
     return () => { off(); unsubAuth(); };
   }, []);
 
-  function verifyArea() {
-    setVerified(true);
-    setVerifiedState(true);
-    showToast("📍 동네 인증 완료! 실제 판매가가 공개됩니다");
+  async function verifyArea() {
+    if (!navigator.geolocation) {
+      showToast("이 기기에서는 GPS를 사용할 수 없어요"); return;
+    }
+    showToast("📍 위치 확인 중...");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`,
+            { headers: { Authorization: `KakaoAK ${process.env.NEXT_PUBLIC_KAKAO_API_KEY}` } }
+          );
+          const data = await res.json();
+          const doc = data.documents?.find((d) => d.region_type === "H") || data.documents?.[0];
+          const dong = doc ? `${doc.region_2depth_name} ${doc.region_3depth_name}` : "내 동네";
+          setVerified(true);
+          setVerifiedState(true);
+          showToast(`📍 ${dong} 인증 완료! 실제 판매가가 공개됩니다`);
+          setStage("home");
+        } catch {
+          // 카카오 API 실패 시 GPS 좌표만으로 인증 처리
+          setVerified(true);
+          setVerifiedState(true);
+          showToast("📍 동네 인증 완료! 실제 판매가가 공개됩니다");
+          setStage("home");
+        }
+      },
+      () => showToast("위치 권한을 허용해주세요"),
+      { timeout: 8000 }
+    );
   }
 
   async function submitAuth() {
@@ -192,8 +219,7 @@ export default function PatientApp() {
   }
 
   function goHomeFromGate() {
-    verifyArea();
-    setStage("home");
+    verifyArea(); // verifyArea 내부에서 setStage("home") 처리
   }
 
   function enterProductSearch() {
