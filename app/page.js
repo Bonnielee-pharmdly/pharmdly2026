@@ -8,7 +8,7 @@ import {
   loadOrders, addOrder, updateOrder, onChange, loadPharmacies, loadInventoryAll,
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
   getUser, setUser, signOut, searchProducts, getInventoryAll,
-  signInWithGoogle, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
+  signInWithGoogle, signInWithKakao, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
   supabase,
 } from "../lib/store";
 
@@ -202,9 +202,17 @@ export default function PatientApp() {
     if (!supabase) { showToast("클라우드 모드에서만 사용 가능합니다"); return; }
     try {
       await signInWithGoogle();
-      // 이후는 Google → /auth/callback → onAuthChange가 처리
     } catch (e) {
       showToast("구글 로그인 실패: " + e.message);
+    }
+  }
+
+  async function handleKakaoLogin() {
+    if (!supabase) { showToast("클라우드 모드에서만 사용 가능합니다"); return; }
+    try {
+      await signInWithKakao();
+    } catch (e) {
+      showToast("카카오 로그인 실패: " + e.message);
     }
   }
 
@@ -440,7 +448,13 @@ export default function PatientApp() {
         <p>회원가입 또는 로그인 후 동네 인증을 하면<br />주변 약국의 실제 판매가를 확인할 수 있어요.</p>
 
         {/* 소셜 로그인 */}
-        <div style={{ width: "100%", maxWidth: 340, marginBottom: 6 }}>
+        <div style={{ width: "100%", maxWidth: 340, marginBottom: 6, display: "flex", flexDirection: "column", gap: 8 }}>
+          <button className="btn-social" onClick={handleKakaoLogin} style={{ background: "#FEE500", color: "#191919", border: "none" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" style={{ marginRight: 8, flexShrink: 0 }}>
+              <path fill="#191919" d="M12 3C6.477 3 2 6.477 2 10.5c0 2.536 1.395 4.773 3.527 6.178L4.5 21l4.636-2.318A11.4 11.4 0 0 0 12 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+            </svg>
+            카카오로 계속하기
+          </button>
           <button className="btn-social" onClick={handleGoogleLogin}>
             <svg width="18" height="18" viewBox="0 0 48 48" style={{ marginRight: 8, flexShrink: 0 }}>
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
