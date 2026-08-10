@@ -51,6 +51,7 @@ export default function PatientApp() {
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("전체");
   const [verified, setVerifiedState] = useState(false);
+  const [verifiedDong, setVerifiedDong] = useState("");
   const [browseAll, setBrowseAll] = useState(false); // 전체 약국에서 검색 모드
   const [toast, setToast] = useState("");
   const [bellOpen, setBellOpen] = useState(false);
@@ -150,13 +151,13 @@ export default function PatientApp() {
           );
           const data = await res.json();
           const doc = data.documents?.find((d) => d.region_type === "H") || data.documents?.[0];
-          const dong = doc ? `${doc.region_2depth_name} ${doc.region_3depth_name}` : "내 동네";
+          const dong = doc ? `${doc.region_3depth_name || doc.region_2depth_name}` : "";
           setVerified(true);
           setVerifiedState(true);
-          showToast(`📍 ${dong} 인증 완료! 실제 판매가가 공개됩니다`);
+          setVerifiedDong(dong);
+          showToast(`📍 ${dong || "동네"} 인증 완료! 실제 판매가가 공개됩니다`);
           setStage("home");
         } catch {
-          // 카카오 API 실패 시 GPS 좌표만으로 인증 처리
           setVerified(true);
           setVerifiedState(true);
           showToast("📍 동네 인증 완료! 실제 판매가가 공개됩니다");
@@ -476,8 +477,7 @@ export default function PatientApp() {
         <h1>우리 동네를 인증해주세요</h1>
         <p>GPS 기반 동네 인증을 마치면<br />주변 약국의 실제 판매가와 재고를 볼 수 있어요.</p>
         <div className="card">
-          <button className="btn amber" onClick={goHomeFromGate}>📍 내 위치로 동네 인증하기 (GPS · 데모)</button>
-          <div className="notice" style={{ marginTop: 10 }}>실제 서비스에서는 GPS로 동(읍·면) 단위까지만 인증해 위치 정보를 최소한으로 사용합니다.</div>
+          <button className="btn amber" onClick={goHomeFromGate}>📍 내 위치로 동네 인증하기</button>
         </div>
       </div>
     );
@@ -520,7 +520,7 @@ export default function PatientApp() {
           </div>
         </div>
         <small>
-          {verified ? "📍 동네 인증됨 · " : ""}{pharm ? pharm.name : "약 이름으로 검색해 약국을 찾아보세요"}
+          {verified ? `📍 ${verifiedDong ? `${verifiedDong} 인증됨` : "동네 인증됨"} · ` : ""}{pharm ? pharm.name : "약 이름으로 검색해 약국을 찾아보세요"}
         </small>
       </div>
 
@@ -553,7 +553,7 @@ export default function PatientApp() {
 
         {tab === 0 && (
           <>
-            <div className="section-title">🏥 내 주변 약국</div>
+            <div className="section-title">🏥 내 주변 약국{verifiedDong ? ` · ${verifiedDong}` : ""}</div>
             {!regPharms.length && (
               <div className="notice" style={{ marginBottom: 10 }}>
                 💡 <Link href="/pharmacy">약국용 화면</Link>에서 약국·상품을 등록하면 여기 맨 위에 나타나요.
@@ -1035,8 +1035,8 @@ export default function PatientApp() {
                 {verified ? (
                   <>
                     <div className="banner confirmed">✅ 동네 인증 완료 — 인증된 위치 기준으로 주변 약국의 실제 판매가가 공개됩니다.</div>
-                    <button className="btn outline" style={{ marginTop: 10 }} onClick={() => { setVerified(false); setVerifiedState(false); showToast("📍 동네 인증이 해제되었습니다"); }}>
-                      위치 인증 해제 (데모)
+                    <button className="btn outline" style={{ marginTop: 10 }} onClick={() => { setVerified(false); setVerifiedState(false); setVerifiedDong(""); showToast("📍 동네 인증이 해제되었습니다"); }}>
+                      위치 인증 해제
                     </button>
                   </>
                 ) : (
@@ -1045,7 +1045,6 @@ export default function PatientApp() {
                     <button className="btn amber" style={{ marginTop: 10 }} onClick={verifyArea}>📍 동네 인증하기 (GPS · 데모)</button>
                   </>
                 )}
-                <div className="notice" style={{ marginTop: 10 }}>실제 서비스에서는 GPS 기반 동(읍·면) 단위 인증 결과가 여기에 표시되고, 인증된 위치를 기준으로 "가까운 약국" 정렬이 이뤄집니다.</div>
               </div>
             )}
           </>
