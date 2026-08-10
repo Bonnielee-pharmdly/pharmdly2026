@@ -8,6 +8,7 @@ const MENU = [
   { href: '/admin/pharmacy-approvals', icon: '📋', label: '가입 승인', badgeKey: 'pending' as const },
   { href: '/admin/no-shows', icon: '🚫', label: '노쇼 관리' },
   { href: '/admin/products', icon: '📦', label: '마스터데이터' },
+  { href: '/admin/seed-review', icon: '🌱', label: '씨앗 검토' },
   { href: '/admin/pharmacies', icon: '🏥', label: '약국 관리' },
   { href: '/admin/customers', icon: '👤', label: '손님 관리' },
   { href: '/admin/search-keywords', icon: '🔍', label: '검색 키워드 통계' },
