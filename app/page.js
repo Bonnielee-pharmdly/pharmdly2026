@@ -669,8 +669,29 @@ export default function PatientApp() {
                         </div>
                       ))}
                     </div>
-                    <div className="empty">
-                      또는 찾는 약 이름을 검색해보세요.<br />보유 중인 약국을 가까운 순으로 보여드려요! 🔍
+                    <div className="section-title" style={{ marginTop: 8 }}>💊 약 정보 검색</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { name: "활명수", cat: "소화·위장", type: "일반의약품" },
+                        { name: "타이레놀정500밀리그램", cat: "해열·진통", type: "일반의약품" },
+                        { name: "판콜에이내복액", cat: "감기약", type: "일반의약품" },
+                        { name: "게루삼정", cat: "소화제", type: "일반의약품" },
+                        { name: "아로나민골드정", cat: "비타민", type: "일반의약품" },
+                      ].map((d) => (
+                        <div key={d.name} className="card" style={{ padding: "10px 12px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div>
+                              <span className="tag otc" style={{ marginBottom: 2 }}>{d.type}</span>
+                              <div className="name" style={{ fontSize: 14, marginTop: 4 }}>{d.name}</div>
+                              <div className="meta">{d.cat}</div>
+                            </div>
+                            <button className="drug-info-btn" onClick={() => openDrugInfo(d.name)}>💊 약 정보</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="empty" style={{ marginTop: 8 }}>
+                      찾는 약을 검색하거나 분류를 눌러보세요 🔍
                     </div>
                   </>
                 )}
