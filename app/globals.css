@@ -135,3 +135,19 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 .home-icon-card .hi-emoji { font-size: 38px; display: block; margin-bottom: 10px; }
 .home-icon-card .hi-label { font-size: 14px; font-weight: 800; color: var(--dark); }
 .home-icon-card .hi-sub { font-size: 11px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+
+/* ── 약 정보 모달 ── */
+.drug-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; display: flex; align-items: flex-end; }
+.drug-sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding: 12px 16px 32px; }
+.drug-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+.drug-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 12px; background: #f7f7f7; margin-bottom: 12px; }
+.drug-name { font-size: 18px; font-weight: 800; color: var(--dark); line-height: 1.3; }
+.drug-mfr { font-size: 12px; color: var(--gray); margin-top: 2px; margin-bottom: 10px; }
+.drug-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.drug-tag { background: var(--teal-light); color: var(--teal); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+.drug-sections { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.drug-sec { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.drug-sec-hd { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #fafafa; font-size: 13px; font-weight: 700; cursor: pointer; border: none; text-align: left; }
+.drug-sec-body { padding: 12px 14px; font-size: 12px; color: #444; line-height: 1.7; white-space: pre-wrap; background: #fff; }
+.drug-close { width: 100%; margin-top: 16px; padding: 14px; background: var(--teal); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.drug-info-btn { flex-shrink: 0; font-size: 11px; padding: 5px 10px; border: 1.5px solid var(--teal); color: var(--teal); background: var(--teal-light); border-radius: 20px; cursor: pointer; font-weight: 700; white-space: nowrap; }

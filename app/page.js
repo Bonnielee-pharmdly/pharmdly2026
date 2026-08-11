@@ -9,7 +9,7 @@ import {
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
   getUser, setUser, signOut, searchProducts, getInventoryAll,
   signInWithGoogle, signInWithKakao, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
-  supabase,
+  supabase, searchDrugMaster,
 } from "../lib/store";
 
 const STATUS = {
@@ -49,6 +49,19 @@ const CAT_GROUPS = [
   { key: "의료기기·보호대", icon: "🩺", cats: ["의료기기·보호대", "보호대", "보조기", "혈압계", "혈당계", "체온계"] },
 ];
 
+function DrugSection({ icon, title, content }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="drug-sec">
+      <button className="drug-sec-hd" onClick={() => setOpen(!open)}>
+        <span>{icon} {title}</span>
+        <span style={{ fontSize: 12, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div className="drug-sec-body">{content}</div>}
+    </div>
+  );
+}
+
 export default function PatientApp() {
   const [tab, setTab] = useState(0); // 0약국 1검색 2트렌드 3장바구니 4주문
   const [selPharm, setSelPharm] = useState(null);
@@ -72,6 +85,9 @@ export default function PatientApp() {
   const [apiResults, setApiResults] = useState(null); // FastAPI 검색 결과 (null = 아직 검색 안 함)
   const [apiLoading, setApiLoading] = useState(false);
   const [apiInvAll, setApiInvAll] = useState([]); // FastAPI 전체 재고 (약국별 상품 수 계산용)
+  const [drugInfo, setDrugInfo] = useState(null); // 약 정보 모달 데이터
+  const [drugInfoOpen, setDrugInfoOpen] = useState(false);
+  const [drugInfoLoading, setDrugInfoLoading] = useState(false);
 
   // 앱 진입 흐름: splash(시작화면) → auth(회원가입/로그인) → gate(동네인증) → home(홈) → main(본 화면)
   const [stage, setStage] = useState("splash");
@@ -235,6 +251,17 @@ export default function PatientApp() {
     setAuthName("");
     setStage("auth");
     showToast("로그아웃 되었습니다");
+  }
+
+  async function openDrugInfo(productName) {
+    setDrugInfoOpen(true);
+    setDrugInfo(null);
+    setDrugInfoLoading(true);
+    try {
+      const info = await searchDrugMaster(productName);
+      setDrugInfo(info);
+    } catch { setDrugInfo(null); }
+    finally { setDrugInfoLoading(false); }
   }
 
   function goHomeFromGate() {
@@ -721,9 +748,14 @@ export default function PatientApp() {
                     )}
                     {globalGroups.map((g) => (
                       <div key={g.name} className="card">
-                        <span className="tag otc">{g.type}</span>
-                        <div className="name" style={{ marginTop: 6 }}>{g.name}</div>
-                        <div className="meta">{g.cat}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <div>
+                            <span className="tag otc">{g.type}</span>
+                            <div className="name" style={{ marginTop: 6 }}>{g.name}</div>
+                            <div className="meta">{g.cat}</div>
+                          </div>
+                          <button className="drug-info-btn" onClick={() => openDrugInfo(g.name)}>💊 약 정보</button>
+                        </div>
                         {g.offers.map((o) => (
                           <div className="row" key={o.pharmId + "-" + o.key} style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #eee" }}>
                             <div>
@@ -1076,6 +1108,57 @@ export default function PatientApp() {
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+
+      {/* 약 정보 모달 */}
+      {drugInfoOpen && (
+        <div className="drug-overlay" onClick={() => setDrugInfoOpen(false)}>
+          <div className="drug-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="drug-handle" />
+            {drugInfoLoading ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
+                <div style={{ fontSize: 32 }}>💊</div>
+                <div style={{ marginTop: 8, fontSize: 13 }}>약 정보 불러오는 중...</div>
+              </div>
+            ) : drugInfo ? (
+              <>
+                {drugInfo.item_image && (
+                  <img src={drugInfo.item_image} alt={drugInfo.item_name} className="drug-img" />
+                )}
+                <div className="drug-name">{drugInfo.item_name}</div>
+                <div className="drug-mfr">{drugInfo.entp_name}</div>
+                {drugInfo.efcy_tags && (() => {
+                  try {
+                    const tags = typeof drugInfo.efcy_tags === "string" ? JSON.parse(drugInfo.efcy_tags) : drugInfo.efcy_tags;
+                    return (
+                      <div className="drug-tags">
+                        {tags.slice(0, 6).map((t, i) => <span key={i} className="drug-tag">{t}</span>)}
+                      </div>
+                    );
+                  } catch { return null; }
+                })()}
+                <div className="drug-sections">
+                  {[
+                    { icon: "✅", title: "효능·효과", content: drugInfo.efcy },
+                    { icon: "💊", title: "용법·용량", content: drugInfo.use_method },
+                    { icon: "⚠️", title: "주의사항", content: [drugInfo.atpn_warn, drugInfo.atpn].filter(Boolean).join("\n\n") },
+                    { icon: "🔄", title: "상호작용", content: drugInfo.intrc },
+                    { icon: "😵", title: "이상반응(부작용)", content: drugInfo.se },
+                    { icon: "📦", title: "보관방법", content: drugInfo.deposit_method },
+                  ].filter(s => s.content).map((s, i) => (
+                    <DrugSection key={i} icon={s.icon} title={s.title} content={s.content} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
+                <div style={{ fontSize: 32 }}>🔍</div>
+                <div style={{ marginTop: 8, fontSize: 13 }}>약 정보를 찾을 수 없어요</div>
+              </div>
+            )}
+            <button className="drug-close" onClick={() => setDrugInfoOpen(false)}>닫기</button>
+          </div>
+        </div>
+      )}
 
       <div className="tabbar">
         {[["🏥", "약국", 0], ["🔍", "검색", 1], ["🔥", "트렌드", 2], ["👤", "마이페이지", 4]].map(([ic, label, i]) => (
