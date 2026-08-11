@@ -9,7 +9,7 @@ import {
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
   getUser, setUser, signOut, searchProducts, getInventoryAll,
   signInWithGoogle, signInWithKakao, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
-  supabase, searchDrugMaster, searchDrugsByCategory,
+  supabase, searchDrugMaster, searchDrugsByCategory, fetchMfdsPackageImage,
 } from "../lib/store";
 
 const STATUS = {
@@ -48,6 +48,39 @@ const CAT_GROUPS = [
   { key: "의약외품", icon: "🏥", cats: ["의약외품", "마스크", "손소독제", "파스"], searchQuery: "소독" },
   { key: "의료기기·보호대", icon: "🩺", cats: ["의료기기·보호대", "보호대", "보조기", "혈압계", "혈당계", "체온계"], searchQuery: "혈압" },
 ];
+
+// 분류 약 목록 카드 — 마운트 시 식약처 API로 포장지 사진 lazy-load
+function DrugCatCard({ drug, onPress }) {
+  const [pkgImg, setPkgImg] = useState(drug.item_image || null);
+  useEffect(() => {
+    if (!drug.item_seq) return;
+    fetchMfdsPackageImage(drug.item_seq).then((url) => { if (url) setPkgImg(url); });
+  }, [drug.item_seq]);
+  return (
+    <div className="drug-cat-card" onClick={() => onPress(drug, pkgImg)}>
+      {pkgImg ? (
+        <img src={pkgImg} alt={drug.item_name} className="drug-cat-img" />
+      ) : (
+        <div className="drug-cat-img drug-cat-img-fallback">💊</div>
+      )}
+      <div className="drug-cat-info">
+        <div className="drug-cat-name">{drug.item_name}</div>
+        <div className="drug-cat-mfr">{drug.entp_name}</div>
+        {drug.efcy_tags && (() => {
+          try {
+            const tags = typeof drug.efcy_tags === "string" ? JSON.parse(drug.efcy_tags) : drug.efcy_tags;
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                {tags.slice(0, 3).map((t, i) => <span key={i} className="drug-tag" style={{ fontSize: 10, padding: "2px 7px" }}>{t}</span>)}
+              </div>
+            );
+          } catch { return null; }
+        })()}
+      </div>
+      <span style={{ color: "var(--teal)", fontSize: 18, flexShrink: 0 }}>›</span>
+    </div>
+  );
+}
 
 function DrugSection({ icon, title, content }) {
   const [open, setOpen] = useState(false);
@@ -261,14 +294,19 @@ export default function PatientApp() {
     setDrugInfoLoading(true);
     try {
       const info = await searchDrugMaster(productName);
-      setDrugInfo(info);
+      if (info) {
+        const pkgImg = await fetchMfdsPackageImage(info.item_seq);
+        setDrugInfo({ ...info, _packageImg: pkgImg });
+      } else {
+        setDrugInfo(null);
+      }
     } catch { setDrugInfo(null); }
     finally { setDrugInfoLoading(false); }
   }
 
-  // 이미 패치된 drug 객체로 바로 모달 열기 (재조회 없음)
-  function openDrugInfoDirect(drug) {
-    setDrugInfo(drug);
+  // 이미 패치된 drug 객체로 바로 모달 열기 (pkgImg는 DrugCatCard가 이미 로드한 것)
+  function openDrugInfoDirect(drug, pkgImg = null) {
+    setDrugInfo({ ...drug, _packageImg: pkgImg });
     setDrugInfoLoading(false);
     setDrugInfoOpen(true);
   }
@@ -713,28 +751,7 @@ export default function PatientApp() {
                     ) : (
                       <div className="drug-cat-list">
                         {catDrugList.map((drug) => (
-                          <div key={drug.id} className="drug-cat-card" onClick={() => openDrugInfoDirect(drug)}>
-                            {drug.item_image ? (
-                              <img src={drug.item_image} alt={drug.item_name} className="drug-cat-img" />
-                            ) : (
-                              <div className="drug-cat-img drug-cat-img-fallback">💊</div>
-                            )}
-                            <div className="drug-cat-info">
-                              <div className="drug-cat-name">{drug.item_name}</div>
-                              <div className="drug-cat-mfr">{drug.entp_name}</div>
-                              {drug.efcy_tags && (() => {
-                                try {
-                                  const tags = typeof drug.efcy_tags === "string" ? JSON.parse(drug.efcy_tags) : drug.efcy_tags;
-                                  return (
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
-                                      {tags.slice(0, 3).map((t, i) => <span key={i} className="drug-tag" style={{ fontSize: 10, padding: "2px 7px" }}>{t}</span>)}
-                                    </div>
-                                  );
-                                } catch { return null; }
-                              })()}
-                            </div>
-                            <span style={{ color: "var(--teal)", fontSize: 18, flexShrink: 0 }}>›</span>
-                          </div>
+                          <DrugCatCard key={drug.id} drug={drug} onPress={openDrugInfoDirect} />
                         ))}
                       </div>
                     )}
@@ -1172,8 +1189,8 @@ export default function PatientApp() {
               </div>
             ) : drugInfo ? (
               <>
-                {drugInfo.item_image && (
-                  <img src={drugInfo.item_image} alt={drugInfo.item_name} className="drug-img" />
+                {(drugInfo._packageImg || drugInfo.item_image) && (
+                  <img src={drugInfo._packageImg || drugInfo.item_image} alt={drugInfo.item_name} className="drug-img" />
                 )}
                 <div className="drug-name">{drugInfo.item_name}</div>
                 <div className="drug-mfr">{drugInfo.entp_name}</div>
