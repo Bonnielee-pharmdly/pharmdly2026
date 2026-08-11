@@ -151,3 +151,13 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 .drug-sec-body { padding: 12px 14px; font-size: 12px; color: #444; line-height: 1.7; white-space: pre-wrap; background: #fff; }
 .drug-close { width: 100%; margin-top: 16px; padding: 14px; background: var(--teal); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
 .drug-info-btn { flex-shrink: 0; font-size: 11px; padding: 5px 10px; border: 1.5px solid var(--teal); color: var(--teal); background: var(--teal-light); border-radius: 20px; cursor: pointer; font-weight: 700; white-space: nowrap; }
+
+/* ── 분류별 약 목록 카드 ── */
+.drug-cat-list { display: flex; flex-direction: column; gap: 8px; }
+.drug-cat-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+.drug-cat-card:active { background: var(--teal-light); border-color: var(--teal); }
+.drug-cat-img { width: 68px; height: 68px; object-fit: contain; border-radius: 10px; background: #f7f7f7; flex-shrink: 0; }
+.drug-cat-img-fallback { display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.drug-cat-info { flex: 1; min-width: 0; }
+.drug-cat-name { font-size: 13.5px; font-weight: 700; color: var(--dark); line-height: 1.3; word-break: keep-all; }
+.drug-cat-mfr { font-size: 11.5px; color: var(--gray); margin-top: 3px; }

@@ -9,7 +9,7 @@ import {
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
   getUser, setUser, signOut, searchProducts, getInventoryAll,
   signInWithGoogle, signInWithKakao, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
-  supabase, searchDrugMaster,
+  supabase, searchDrugMaster, searchDrugsByCategory,
 } from "../lib/store";
 
 const STATUS = {
@@ -29,24 +29,24 @@ const RANKING = [
   { name: "닥터마밍 연고", cnt: 1203, chg: -1 }, { name: "락토핏 골드", cnt: 986, chg: 0 },
 ];
 const CAT_GROUPS = [
-  { key: "전체", icon: "🏷️", cats: null },
-  { key: "감기·호흡기", icon: "🤧", cats: ["감기약", "감기·호흡기", "해열진통제", "기침·가래", "코막힘·비염"] },
-  { key: "소화·위장·간", icon: "🫃", cats: ["소화제", "소화·위장·간", "위장약", "간장약", "변비·설사", "구역·멀미"] },
-  { key: "통증·근육·파스", icon: "💪", cats: ["해열진통제", "통증·근육·파스", "파스·진통", "근육통", "두통약", "관절·류마티스"] },
-  { key: "피부·두피·모발", icon: "🧴", cats: ["피부·두피·모발", "더마·크림", "더마", "피부연고", "두피케어", "탈모"] },
-  { key: "눈·귀·구강", icon: "👁️", cats: ["눈·귀·구강", "안약", "점안액", "귀약", "구강청결", "치약·칫솔"] },
-  { key: "상처·소독", icon: "🩹", cats: ["상처케어", "상처치료", "상처·소독", "밴드·붕대", "소독약"] },
-  { key: "무좀·손발톱", icon: "🦶", cats: ["무좀·손발톱", "무좀", "항진균제"] },
-  { key: "영양제·비타민", icon: "⚡", cats: ["고함량 비타민B", "비타민", "영양제·비타민", "피로회복", "종합비타민"] },
-  { key: "간·혈행건강", icon: "❤️", cats: ["간·혈행건강", "간장약", "혈행개선", "오메가3", "코엔자임Q10"] },
-  { key: "뼈·관절·연골", icon: "🦴", cats: ["뼈·관절·연골", "칼슘", "마그네슘", "글루코사민", "관절영양제"] },
-  { key: "장·면역건강", icon: "🦠", cats: ["유산균", "장·면역건강", "프로바이오틱스", "면역영양제"] },
-  { key: "눈·수면·스트레스", icon: "😴", cats: ["눈·수면·스트레스", "루테인", "수면영양제", "마그네슘"] },
-  { key: "소아·어린이", icon: "👶", cats: ["소아·어린이", "어린이약", "어린이영양제", "어린이비타민"] },
-  { key: "여성건강", icon: "🌸", cats: ["여성건강", "생리통", "여성영양제", "철분제"] },
-  { key: "남성·실버건강", icon: "🧔", cats: ["남성·실버건강", "남성영양제", "실버영양제", "전립선건강"] },
-  { key: "의약외품", icon: "🏥", cats: ["의약외품", "마스크", "손소독제", "파스"] },
-  { key: "의료기기·보호대", icon: "🩺", cats: ["의료기기·보호대", "보호대", "보조기", "혈압계", "혈당계", "체온계"] },
+  { key: "전체", icon: "🏷️", cats: null, searchQuery: null },
+  { key: "감기·호흡기", icon: "🤧", cats: ["감기약", "감기·호흡기", "해열진통제", "기침·가래", "코막힘·비염"], searchQuery: "감기" },
+  { key: "소화·위장·간", icon: "🫃", cats: ["소화제", "소화·위장·간", "위장약", "간장약", "변비·설사", "구역·멀미"], searchQuery: "소화" },
+  { key: "통증·근육·파스", icon: "💪", cats: ["해열진통제", "통증·근육·파스", "파스·진통", "근육통", "두통약", "관절·류마티스"], searchQuery: "통증" },
+  { key: "피부·두피·모발", icon: "🧴", cats: ["피부·두피·모발", "더마·크림", "더마", "피부연고", "두피케어", "탈모"], searchQuery: "피부" },
+  { key: "눈·귀·구강", icon: "👁️", cats: ["눈·귀·구강", "안약", "점안액", "귀약", "구강청결", "치약·칫솔"], searchQuery: "안구" },
+  { key: "상처·소독", icon: "🩹", cats: ["상처케어", "상처치료", "상처·소독", "밴드·붕대", "소독약"], searchQuery: "소독" },
+  { key: "무좀·손발톱", icon: "🦶", cats: ["무좀·손발톱", "무좀", "항진균제"], searchQuery: "무좀" },
+  { key: "영양제·비타민", icon: "⚡", cats: ["고함량 비타민B", "비타민", "영양제·비타민", "피로회복", "종합비타민"], searchQuery: "비타민" },
+  { key: "간·혈행건강", icon: "❤️", cats: ["간·혈행건강", "간장약", "혈행개선", "오메가3", "코엔자임Q10"], searchQuery: "혈행" },
+  { key: "뼈·관절·연골", icon: "🦴", cats: ["뼈·관절·연골", "칼슘", "마그네슘", "글루코사민", "관절영양제"], searchQuery: "관절" },
+  { key: "장·면역건강", icon: "🦠", cats: ["유산균", "장·면역건강", "프로바이오틱스", "면역영양제"], searchQuery: "유산균" },
+  { key: "눈·수면·스트레스", icon: "😴", cats: ["눈·수면·스트레스", "루테인", "수면영양제", "마그네슘"], searchQuery: "수면" },
+  { key: "소아·어린이", icon: "👶", cats: ["소아·어린이", "어린이약", "어린이영양제", "어린이비타민"], searchQuery: "소아" },
+  { key: "여성건강", icon: "🌸", cats: ["여성건강", "생리통", "여성영양제", "철분제"], searchQuery: "생리" },
+  { key: "남성·실버건강", icon: "🧔", cats: ["남성·실버건강", "남성영양제", "실버영양제", "전립선건강"], searchQuery: "전립선" },
+  { key: "의약외품", icon: "🏥", cats: ["의약외품", "마스크", "손소독제", "파스"], searchQuery: "소독" },
+  { key: "의료기기·보호대", icon: "🩺", cats: ["의료기기·보호대", "보호대", "보조기", "혈압계", "혈당계", "체온계"], searchQuery: "혈압" },
 ];
 
 function DrugSection({ icon, title, content }) {
@@ -88,6 +88,8 @@ export default function PatientApp() {
   const [drugInfo, setDrugInfo] = useState(null); // 약 정보 모달 데이터
   const [drugInfoOpen, setDrugInfoOpen] = useState(false);
   const [drugInfoLoading, setDrugInfoLoading] = useState(false);
+  const [catDrugList, setCatDrugList] = useState([]); // 분류별 약 목록
+  const [catDrugLoading, setCatDrugLoading] = useState(false);
 
   // 앱 진입 흐름: splash(시작화면) → auth(회원가입/로그인) → gate(동네인증) → home(홈) → main(본 화면)
   const [stage, setStage] = useState("splash");
@@ -262,6 +264,27 @@ export default function PatientApp() {
       setDrugInfo(info);
     } catch { setDrugInfo(null); }
     finally { setDrugInfoLoading(false); }
+  }
+
+  // 이미 패치된 drug 객체로 바로 모달 열기 (재조회 없음)
+  function openDrugInfoDirect(drug) {
+    setDrugInfo(drug);
+    setDrugInfoLoading(false);
+    setDrugInfoOpen(true);
+  }
+
+  // 분류 클릭 → drug_master에서 해당 카테고리 약 목록 로드
+  async function handleCatClick(g) {
+    if (g.key === "전체") { setCatGroup(null); setCatDrugList([]); return; }
+    setCatGroup(g);
+    setBrowseAll(true);
+    setCatDrugList([]);
+    setCatDrugLoading(true);
+    try {
+      const drugs = await searchDrugsByCategory(g.searchQuery);
+      setCatDrugList(drugs);
+    } catch { setCatDrugList([]); }
+    finally { setCatDrugLoading(false); }
   }
 
   function goHomeFromGate() {
@@ -663,50 +686,65 @@ export default function PatientApp() {
                     <div className="section-title">📦 분류로 보기</div>
                     <div className="cat-grid">
                       {catGroupCounts.map((g) => (
-                        <div key={g.key} className="cat-btn" onClick={() => { setCatGroup(g); setBrowseAll(true); }}>
+                        <div key={g.key} className="cat-btn" onClick={() => handleCatClick(g)}>
                           <div className="ce">{g.icon}</div>
-                          <div className="cn">{g.key}<br />{g.count}종</div>
+                          <div className="cn">{g.key}</div>
                         </div>
                       ))}
                     </div>
-                    <div className="section-title" style={{ marginTop: 8 }}>💊 약 정보 검색</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {[
-                        { name: "활명수", cat: "소화·위장", type: "일반의약품" },
-                        { name: "타이레놀정500밀리그램", cat: "해열·진통", type: "일반의약품" },
-                        { name: "판콜에이내복액", cat: "감기약", type: "일반의약품" },
-                        { name: "게루삼정", cat: "소화제", type: "일반의약품" },
-                        { name: "아로나민골드정", cat: "비타민", type: "일반의약품" },
-                      ].map((d) => (
-                        <div key={d.name} className="card" style={{ padding: "10px 12px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <span className="tag otc" style={{ marginBottom: 2 }}>{d.type}</span>
-                              <div className="name" style={{ fontSize: 14, marginTop: 4 }}>{d.name}</div>
-                              <div className="meta">{d.cat}</div>
-                            </div>
-                            <button className="drug-info-btn" onClick={() => openDrugInfo(d.name)}>💊 약 정보</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="empty" style={{ marginTop: 8 }}>
-                      찾는 약을 검색하거나 분류를 눌러보세요 🔍
+                    <div className="empty" style={{ marginTop: 8, paddingTop: 16 }}>
+                      분류를 눌러 약을 탐색하거나 이름으로 검색하세요 🔍
                     </div>
                   </>
                 )}
-                {catGroup && !query && (
+                {catGroup && (
                   <div className="chips" style={{ marginTop: -2 }}>
-                    <span className="chip" onClick={() => setCatGroup(null)}>← 분류 다시 보기</span>
+                    <span className="chip" onClick={() => { setCatGroup(null); setCatDrugList([]); }}>← 분류 다시 보기</span>
                   </div>
                 )}
-                {(query || catGroup) && (
+                {/* 분류 선택 후 검색어 없음 → drug_master 약 목록 */}
+                {catGroup && !query && (
+                  <>
+                    <div className="section-title">{catGroup.icon} {catGroup.key}</div>
+                    {catDrugLoading ? (
+                      <div className="empty">💊 약 목록 불러오는 중...</div>
+                    ) : catDrugList.length === 0 ? (
+                      <div className="empty">해당 분류의 약 정보가 없어요.<br />이름으로 검색해보세요 🔍</div>
+                    ) : (
+                      <div className="drug-cat-list">
+                        {catDrugList.map((drug) => (
+                          <div key={drug.id} className="drug-cat-card" onClick={() => openDrugInfoDirect(drug)}>
+                            {drug.item_image ? (
+                              <img src={drug.item_image} alt={drug.item_name} className="drug-cat-img" />
+                            ) : (
+                              <div className="drug-cat-img drug-cat-img-fallback">💊</div>
+                            )}
+                            <div className="drug-cat-info">
+                              <div className="drug-cat-name">{drug.item_name}</div>
+                              <div className="drug-cat-mfr">{drug.entp_name}</div>
+                              {drug.efcy_tags && (() => {
+                                try {
+                                  const tags = typeof drug.efcy_tags === "string" ? JSON.parse(drug.efcy_tags) : drug.efcy_tags;
+                                  return (
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                                      {tags.slice(0, 3).map((t, i) => <span key={i} className="drug-tag" style={{ fontSize: 10, padding: "2px 7px" }}>{t}</span>)}
+                                    </div>
+                                  );
+                                } catch { return null; }
+                              })()}
+                            </div>
+                            <span style={{ color: "var(--teal)", fontSize: 18, flexShrink: 0 }}>›</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                {query && (
                   <div className="section-title">
-                    {query
-                      ? apiResults !== null
-                        ? `"${query}" 검색 결과 ${apiResults.length}종`
-                        : `"${query}" 검색 결과 ${globalGroups.length}종`
-                      : `${catGroup.key} 분류`}
+                    {apiResults !== null
+                      ? `"${query}" 검색 결과 ${apiResults.length}종`
+                      : `"${query}" 검색 결과 ${globalGroups.length}종`}
                     {apiLoading && <span style={{ color: "var(--gray)", fontWeight: 400 }}> 검색 중…</span>}
                   </div>
                 )}
@@ -760,48 +798,40 @@ export default function PatientApp() {
                   </>
                 )}
 
-                {/* 기존 재고(invAll) 기반 결과 — FastAPI 미연동 시 폴백 */}
-                {(!query || apiResults === null) && !catGroup && null}
-                {(!query || apiResults === null) && catGroup && (
-                  <>
-                    {!globalGroups.length && (
-                      <div className="empty">{catGroup.key} 분류의 상품을 보유한 약국이 없어요.</div>
-                    )}
-                    {globalGroups.map((g) => (
-                      <div key={g.name} className="card">
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                          <div>
-                            <span className="tag otc">{g.type}</span>
-                            <div className="name" style={{ marginTop: 6 }}>{g.name}</div>
-                            <div className="meta">{g.cat}</div>
-                          </div>
-                          <button className="drug-info-btn" onClick={() => openDrugInfo(g.name)}>💊 약 정보</button>
+                {/* query 있고 catGroup 없음 — FastAPI 미연동 시 재고 폴백 */}
+                {query && apiResults === null && !catGroup && globalGroups.map((g) => (
+                  <div key={g.name} className="card">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <span className="tag otc">{g.type}</span>
+                        <div className="name" style={{ marginTop: 6 }}>{g.name}</div>
+                        <div className="meta">{g.cat}</div>
+                      </div>
+                      <button className="drug-info-btn" onClick={() => openDrugInfo(g.name)}>💊 약 정보</button>
+                    </div>
+                    {g.offers.map((o) => (
+                      <div className="row" key={o.pharmId + "-" + o.key} style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #eee" }}>
+                        <div>
+                          <div className="meta" style={{ fontWeight: 600 }}>🏥 {o.pharmName}</div>
+                          {o.low && <span className="tag deal">소량 남음</span>}
+                          {verified ? (
+                            <div className="price">
+                              {o.off > 0 && <s>{won(o.orig)}</s>}
+                              {won(o.eff)}
+                              {o.off > 0 && <span className="tag deal" style={{ marginLeft: 4 }}>🎁 −{won(o.off)}</span>}
+                            </div>
+                          ) : (
+                            <div className="price-lock" onClick={verifyArea}>🔒 동네 인증 시 판매가 공개</div>
+                          )}
                         </div>
-                        {g.offers.map((o) => (
-                          <div className="row" key={o.pharmId + "-" + o.key} style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #eee" }}>
-                            <div>
-                              <div className="meta" style={{ fontWeight: 600 }}>🏥 {o.pharmName}</div>
-                              {o.low && <span className="tag deal">소량 남음</span>}
-                              {verified ? (
-                                <div className="price">
-                                  {o.off > 0 && <s>{won(o.orig)}</s>}
-                                  {won(o.eff)}
-                                  {o.off > 0 && <span className="tag deal" style={{ marginLeft: 4 }}>🎁 −{won(o.off)}</span>}
-                                </div>
-                              ) : (
-                                <div className="price-lock" onClick={verifyArea}>🔒 동네 인증 시 판매가 공개</div>
-                              )}
-                            </div>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button className="btn small" onClick={() => viewPharmFromSearch(o)}>약국 보기</button>
-                              <button className="add-btn" onClick={() => pickAndAdd(o)}>🛒 담기</button>
-                            </div>
-                          </div>
-                        ))}
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button className="btn small" onClick={() => viewPharmFromSearch(o)}>약국 보기</button>
+                          <button className="add-btn" onClick={() => pickAndAdd(o)}>🛒 담기</button>
+                        </div>
                       </div>
                     ))}
-                  </>
-                )}
+                  </div>
+                ))}
               </>
             )}
 
