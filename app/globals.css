@@ -170,3 +170,8 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 .drug-info-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; }
 .drug-info-divider-line { flex: 1; height: 1px; background: var(--line); }
 .drug-info-divider-label { font-size: 11.5px; color: var(--gray); font-weight: 700; white-space: nowrap; }
+.drug-qty-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; background: var(--teal-light); border: 1.5px solid var(--teal); border-radius: 12px; padding: 12px 14px; }
+.drug-qty-name { font-size: 12.5px; font-weight: 600; color: var(--dark); flex: 1; line-height: 1.4; }
+.drug-qty-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.drug-qty-controls button { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--teal); background: #fff; font-size: 18px; cursor: pointer; color: var(--teal); font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.drug-qty-controls span { font-size: 17px; font-weight: 800; min-width: 24px; text-align: center; color: var(--dark); }

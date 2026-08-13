@@ -9,7 +9,7 @@ import {
   loadRequests, addRequest, isCloud, cloudUrlLooksWrong, getVerified, setVerified,
   getUser, setUser, signOut, searchProducts, getInventoryAll,
   signInWithGoogle, signInWithKakao, signInWithEmail, signUpWithEmail, onAuthChange, getSupabaseUser, userFromSupabase,
-  supabase, searchDrugMaster, searchDrugsByCategory, fetchMfdsPackageImage,
+  supabase, searchDrugMaster, searchDrugsByCategory, fetchMfdsPackageImage, fetchPackUnits,
 } from "../lib/store";
 
 const STATUS = {
@@ -123,7 +123,9 @@ export default function PatientApp() {
   const [drugInfoLoading, setDrugInfoLoading] = useState(false);
   const [catDrugList, setCatDrugList] = useState([]); // 분류별 약 목록
   const [catDrugLoading, setCatDrugLoading] = useState(false);
-  const [drugSelUnit, setDrugSelUnit] = useState(null); // 약 정보 패널 선택 단위
+  const [drugSelUnit, setDrugSelUnit] = useState(null); // 선택된 단위 객체 {standard_code, unit_label, ...}
+  const [drugUnits, setDrugUnits] = useState([]); // product_units에서 로드한 포장 단위 목록
+  const [drugQty, setDrugQty] = useState(1); // 수량
 
   // 앱 진입 흐름: splash(시작화면) → auth(회원가입/로그인) → gate(동네인증) → home(홈) → main(본 화면)
   const [stage, setStage] = useState("splash");
@@ -294,11 +296,14 @@ export default function PatientApp() {
     setDrugInfo(null);
     setDrugInfoLoading(true);
     setDrugSelUnit(null);
+    setDrugUnits([]);
+    setDrugQty(1);
     try {
       const info = await searchDrugMaster(productName);
       if (info) {
         const pkgImg = await fetchMfdsPackageImage(info.item_seq);
         setDrugInfo({ ...info, _packageImg: pkgImg });
+        fetchPackUnits(info.item_seq).then(setDrugUnits);
       } else {
         setDrugInfo(null);
       }
@@ -312,21 +317,28 @@ export default function PatientApp() {
     setDrugInfoLoading(false);
     setDrugInfoOpen(true);
     setDrugSelUnit(null);
+    setDrugUnits([]);
+    setDrugQty(1);
+    if (drug.item_seq) fetchPackUnits(drug.item_seq).then(setDrugUnits);
   }
 
-  // drug_master 약을 장바구니에 담기 (단위 선택 포함)
+  // drug_master 약을 장바구니에 담기 (단위 + 수량 포함)
   function addDrugToCart() {
     if (!drugInfo) return;
-    const unit = drugSelUnit || "";
-    const key = `drug-${drugInfo.id || drugInfo.item_seq}`;
-    const name = drugInfo.item_name + (unit ? ` (${unit})` : "");
+    if (drugUnits.length > 0 && !drugSelUnit) {
+      showToast("포장 단위를 먼저 선택해주세요");
+      return;
+    }
+    const unitLabel = drugSelUnit?.unit_label || "";
+    const key = `drug-${drugInfo.id || drugInfo.item_seq}${drugSelUnit ? `-${drugSelUnit.standard_code}` : ""}`;
+    const name = drugInfo.item_name + (unitLabel ? ` (${unitLabel})` : "");
     setCart((c) => {
       const it = c.find((i) => i.key === key);
-      if (it) return c.map((i) => i.key === key ? { ...i, qty: Math.min(9, i.qty + 1) } : i);
-      return [...c, { key, name, qty: 1, price: 0 }];
+      if (it) return c.map((i) => i.key === key ? { ...i, qty: Math.min(99, i.qty + drugQty) } : i);
+      return [...c, { key, name, qty: drugQty, price: 0 }];
     });
     setDrugInfoOpen(false);
-    showToast(`🛒 ${drugInfo.item_name}${unit ? ` (${unit})` : ""} 담았습니다`);
+    showToast(`🛒 ${name} × ${drugQty} 담았습니다`);
   }
 
   // 분류 클릭 → drug_master에서 해당 카테고리 약 목록 로드
@@ -1241,36 +1253,54 @@ export default function PatientApp() {
                 })()}
 
                 {/* 포장 단위 선택 */}
-                {(() => {
-                  let units = null;
-                  try {
-                    if (drugInfo.pack_units) {
-                      const raw = typeof drugInfo.pack_units === "string" ? JSON.parse(drugInfo.pack_units) : drugInfo.pack_units;
-                      if (Array.isArray(raw) && raw.length) units = raw;
-                    }
-                  } catch {}
-                  if (!units) return null;
-                  return (
-                    <div className="drug-unit-section">
-                      <div className="drug-unit-label">📦 포장 단위 선택</div>
-                      <div className="drug-unit-chips">
-                        {units.map((u) => (
-                          <span
-                            key={u}
-                            className={"chip" + (drugSelUnit === u ? " on" : "")}
-                            style={{ fontSize: 13, padding: "7px 14px" }}
-                            onClick={() => setDrugSelUnit(drugSelUnit === u ? null : u)}
-                          >{u}</span>
-                        ))}
-                      </div>
+                {drugUnits.length > 0 && (
+                  <div className="drug-unit-section">
+                    <div className="drug-unit-label">📦 포장 단위 선택</div>
+                    <div className="drug-unit-chips">
+                      {drugUnits.map((u) => (
+                        <span
+                          key={u.standard_code}
+                          className={"chip" + (drugSelUnit?.standard_code === u.standard_code ? " on" : "")}
+                          style={{ fontSize: 13, padding: "7px 16px" }}
+                          onClick={() => { setDrugSelUnit(u); setDrugQty(1); }}
+                        >{u.unit_label}</span>
+                      ))}
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
+
+                {/* 선택된 단위 + 수량 조절 카드 */}
+                {drugSelUnit && (
+                  <div className="drug-qty-row">
+                    <div className="drug-qty-name">
+                      {drugInfo.item_name.length > 18
+                        ? drugInfo.item_name.slice(0, 18) + "…"
+                        : drugInfo.item_name}
+                      {" "}
+                      <span style={{ color: "var(--teal)", fontWeight: 700 }}>{drugSelUnit.unit_label}</span>
+                    </div>
+                    <div className="drug-qty-controls">
+                      <button onClick={() => setDrugQty((q) => Math.max(1, q - 1))}>−</button>
+                      <span>{drugQty}</span>
+                      <button onClick={() => setDrugQty((q) => Math.min(99, q + 1))}>＋</button>
+                    </div>
+                  </div>
+                )}
 
                 {/* 장바구니에 담기 */}
-                <button className="btn" style={{ marginTop: 14 }} onClick={addDrugToCart}>
-                  🛒 장바구니에 담기{drugSelUnit ? ` (${drugSelUnit})` : ""}
+                <button
+                  className="btn"
+                  style={{ marginTop: 14, opacity: drugUnits.length > 0 && !drugSelUnit ? 0.45 : 1 }}
+                  onClick={addDrugToCart}
+                >
+                  🛒 장바구니에 담기
+                  {drugSelUnit ? ` (${drugSelUnit.unit_label} × ${drugQty})` : ""}
                 </button>
+                {drugUnits.length > 0 && !drugSelUnit && (
+                  <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--gray)", marginTop: 5 }}>
+                    포장 단위를 먼저 선택해주세요
+                  </div>
+                )}
 
                 {/* 약 정보 구분선 */}
                 <div className="drug-info-divider">
