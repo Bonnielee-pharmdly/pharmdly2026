@@ -161,3 +161,12 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 .drug-cat-info { flex: 1; min-width: 0; }
 .drug-cat-name { font-size: 13.5px; font-weight: 700; color: var(--dark); line-height: 1.3; word-break: keep-all; }
 .drug-cat-mfr { font-size: 11.5px; color: var(--gray); margin-top: 3px; }
+
+/* ── 약 정보 패널 — 단위 선택 + 구분선 ── */
+.drug-img-placeholder { display: flex; align-items: center; justify-content: center; font-size: 52px; }
+.drug-unit-section { margin: 14px 0 2px; }
+.drug-unit-label { font-size: 12px; font-weight: 800; color: var(--gray); margin-bottom: 8px; }
+.drug-unit-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.drug-info-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; }
+.drug-info-divider-line { flex: 1; height: 1px; background: var(--line); }
+.drug-info-divider-label { font-size: 11.5px; color: var(--gray); font-weight: 700; white-space: nowrap; }

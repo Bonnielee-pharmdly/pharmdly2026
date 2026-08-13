@@ -123,6 +123,7 @@ export default function PatientApp() {
   const [drugInfoLoading, setDrugInfoLoading] = useState(false);
   const [catDrugList, setCatDrugList] = useState([]); // 분류별 약 목록
   const [catDrugLoading, setCatDrugLoading] = useState(false);
+  const [drugSelUnit, setDrugSelUnit] = useState(null); // 약 정보 패널 선택 단위
 
   // 앱 진입 흐름: splash(시작화면) → auth(회원가입/로그인) → gate(동네인증) → home(홈) → main(본 화면)
   const [stage, setStage] = useState("splash");
@@ -292,6 +293,7 @@ export default function PatientApp() {
     setDrugInfoOpen(true);
     setDrugInfo(null);
     setDrugInfoLoading(true);
+    setDrugSelUnit(null);
     try {
       const info = await searchDrugMaster(productName);
       if (info) {
@@ -309,6 +311,22 @@ export default function PatientApp() {
     setDrugInfo({ ...drug, _packageImg: pkgImg });
     setDrugInfoLoading(false);
     setDrugInfoOpen(true);
+    setDrugSelUnit(null);
+  }
+
+  // drug_master 약을 장바구니에 담기 (단위 선택 포함)
+  function addDrugToCart() {
+    if (!drugInfo) return;
+    const unit = drugSelUnit || "";
+    const key = `drug-${drugInfo.id || drugInfo.item_seq}`;
+    const name = drugInfo.item_name + (unit ? ` (${unit})` : "");
+    setCart((c) => {
+      const it = c.find((i) => i.key === key);
+      if (it) return c.map((i) => i.key === key ? { ...i, qty: Math.min(9, i.qty + 1) } : i);
+      return [...c, { key, name, qty: 1, price: 0 }];
+    });
+    setDrugInfoOpen(false);
+    showToast(`🛒 ${drugInfo.item_name}${unit ? ` (${unit})` : ""} 담았습니다`);
   }
 
   // 분류 클릭 → drug_master에서 해당 카테고리 약 목록 로드
@@ -1189,11 +1207,28 @@ export default function PatientApp() {
               </div>
             ) : drugInfo ? (
               <>
-                {(drugInfo._packageImg || drugInfo.item_image) && (
-                  <img src={drugInfo._packageImg || drugInfo.item_image} alt={drugInfo.item_name} className="drug-img" />
-                )}
+                {/* 포장 사진 */}
+                {(() => {
+                  const pkgImgs = (() => {
+                    try {
+                      if (drugInfo.package_image) {
+                        const arr = typeof drugInfo.package_image === "string" ? JSON.parse(drugInfo.package_image) : drugInfo.package_image;
+                        if (Array.isArray(arr) && arr.length) return arr;
+                      }
+                    } catch {}
+                    return null;
+                  })();
+                  const src = pkgImgs?.[0] || drugInfo._packageImg || drugInfo.item_image;
+                  return src
+                    ? <img src={src} alt={drugInfo.item_name} className="drug-img" />
+                    : <div className="drug-img drug-img-placeholder">💊</div>;
+                })()}
+
+                {/* 이름 + 제조사 */}
                 <div className="drug-name">{drugInfo.item_name}</div>
                 <div className="drug-mfr">{drugInfo.entp_name}</div>
+
+                {/* 효능 태그 */}
                 {drugInfo.efcy_tags && (() => {
                   try {
                     const tags = typeof drugInfo.efcy_tags === "string" ? JSON.parse(drugInfo.efcy_tags) : drugInfo.efcy_tags;
@@ -1204,6 +1239,47 @@ export default function PatientApp() {
                     );
                   } catch { return null; }
                 })()}
+
+                {/* 포장 단위 선택 */}
+                {(() => {
+                  let units = null;
+                  try {
+                    if (drugInfo.pack_units) {
+                      const raw = typeof drugInfo.pack_units === "string" ? JSON.parse(drugInfo.pack_units) : drugInfo.pack_units;
+                      if (Array.isArray(raw) && raw.length) units = raw;
+                    }
+                  } catch {}
+                  if (!units) return null;
+                  return (
+                    <div className="drug-unit-section">
+                      <div className="drug-unit-label">📦 포장 단위 선택</div>
+                      <div className="drug-unit-chips">
+                        {units.map((u) => (
+                          <span
+                            key={u}
+                            className={"chip" + (drugSelUnit === u ? " on" : "")}
+                            style={{ fontSize: 13, padding: "7px 14px" }}
+                            onClick={() => setDrugSelUnit(drugSelUnit === u ? null : u)}
+                          >{u}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 장바구니에 담기 */}
+                <button className="btn" style={{ marginTop: 14 }} onClick={addDrugToCart}>
+                  🛒 장바구니에 담기{drugSelUnit ? ` (${drugSelUnit})` : ""}
+                </button>
+
+                {/* 약 정보 구분선 */}
+                <div className="drug-info-divider">
+                  <div className="drug-info-divider-line" />
+                  <span className="drug-info-divider-label">📋 약 정보</span>
+                  <div className="drug-info-divider-line" />
+                </div>
+
+                {/* 약 정보 아코디언 */}
                 <div className="drug-sections">
                   {[
                     { icon: "✅", title: "효능·효과", content: drugInfo.efcy },
