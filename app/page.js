@@ -126,6 +126,7 @@ export default function PatientApp() {
   const [drugSelUnit, setDrugSelUnit] = useState(null); // 선택된 단위 객체 {standard_code, unit_label, ...}
   const [drugUnits, setDrugUnits] = useState([]); // product_units에서 로드한 포장 단위 목록
   const [drugQty, setDrugQty] = useState(1); // 수량
+  const [drugAdded, setDrugAdded] = useState(false); // 장바구니 담김 상태
 
   // 앱 진입 흐름: splash(시작화면) → auth(회원가입/로그인) → gate(동네인증) → home(홈) → main(본 화면)
   const [stage, setStage] = useState("splash");
@@ -298,6 +299,7 @@ export default function PatientApp() {
     setDrugSelUnit(null);
     setDrugUnits([]);
     setDrugQty(1);
+    setDrugAdded(false);
     try {
       const info = await searchDrugMaster(productName);
       if (info) {
@@ -319,10 +321,11 @@ export default function PatientApp() {
     setDrugSelUnit(null);
     setDrugUnits([]);
     setDrugQty(1);
+    setDrugAdded(false);
     if (drug.item_seq) fetchPackUnits(drug.item_seq).then(setDrugUnits);
   }
 
-  // drug_master 약을 장바구니에 담기 (단위 + 수량 포함)
+  // drug_master 약을 장바구니에 담기 (패널 유지, 수량 조절 모드로 전환)
   function addDrugToCart() {
     if (!drugInfo) return;
     if (drugUnits.length > 0 && !drugSelUnit) {
@@ -334,11 +337,18 @@ export default function PatientApp() {
     const name = drugInfo.item_name + (unitLabel ? ` (${unitLabel})` : "");
     setCart((c) => {
       const it = c.find((i) => i.key === key);
-      if (it) return c.map((i) => i.key === key ? { ...i, qty: Math.min(99, i.qty + drugQty) } : i);
+      if (it) return c.map((i) => i.key === key ? { ...i, qty: drugQty } : i);
       return [...c, { key, name, qty: drugQty, price: 0 }];
     });
-    setDrugInfoOpen(false);
-    showToast(`🛒 ${name} × ${drugQty} 담았습니다`);
+    setDrugAdded(true); // 패널 닫지 않고 수량 조절 모드로
+  }
+
+  // 담긴 후 수량 변경 시 cart 동기화
+  function updateDrugQty(newQty) {
+    const qty = Math.max(1, Math.min(99, newQty));
+    setDrugQty(qty);
+    const key = `drug-${drugInfo.id || drugInfo.item_seq}${drugSelUnit ? `-${drugSelUnit.standard_code}` : ""}`;
+    setCart((c) => c.map((i) => i.key === key ? { ...i, qty } : i));
   }
 
   // 분류 클릭 → drug_master에서 해당 카테고리 약 목록 로드
@@ -1051,9 +1061,7 @@ export default function PatientApp() {
                   </div>
                 </div>
               ))}
-              <div className="total"><span>합계 (실판매가)</span><span>{won(cartTotal)}</span></div>
-              <div className="subline"><span>픽업 예약금 (지금 결제 · 데모)</span><span>{won(DEPOSIT)}</span></div>
-              <div className="subline"><span>약국 방문 시 결제</span><span>{won(Math.max(0, cartTotal - DEPOSIT))}</span></div>
+              <div className="total"><span>합계</span><span>{cartTotal > 0 ? won(cartTotal) : "약국에서 확인"}</span></div>
             </div>
             <div className="card">
               <div className="section-title" style={{ margin: "0 0 8px" }}>방문 예정 시간</div>
@@ -1070,9 +1078,9 @@ export default function PatientApp() {
                 />
               )}
               {!asap && when && <div className="meta" style={{ marginTop: 6 }}>선택: <b>{timeLabel()}</b></div>}
-              <button className="btn amber" onClick={sendOrder}>📨 주문서 보내기 + 예약금 결제 (데모)</button>
+              <button className="btn amber" onClick={sendOrder}>📨 주문서 보내기</button>
             </div>
-            <div className="notice">주문은 약사님이 승인해야 확정됩니다. 의약품 잔액은 약국에서 복약지도와 함께 대면 결제해요.</div>
+            <div className="notice">주문은 약사님이 승인해야 확정됩니다. 결제는 약국 방문 시 대면으로 이루어집니다.</div>
           </>
         ))}
 
@@ -1112,17 +1120,17 @@ export default function PatientApp() {
             {myTab === "payment" && (
               <div className="card">
                 <div className="section-title" style={{ margin: "0 0 8px" }}>💳 결제 정보</div>
-                <div className="notice">현재 앱에서는 약 가격을 직접 결제하지 않으며, 픽업 예약 시 <b>{won(DEPOSIT)}</b>의 예약보증금만 결제됩니다. 의약품 잔액은 약국 방문 시 대면으로 결제해요.</div>
+                <div className="notice">결제는 약국 방문 시 약사님과 대면으로 이루어집니다.</div>
                 <div className="row" style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
                   <div className="meta">등록된 결제수단</div><div className="meta">없음</div>
                 </div>
                 <button className="btn outline" style={{ marginTop: 10 }}>결제수단 등록 (준비중)</button>
-                <div className="section-title" style={{ margin: "14px 0 8px" }}>예약보증금 내역</div>
-                {!orders.length && <div className="empty">예약보증금 결제 내역이 없어요.</div>}
+                <div className="section-title" style={{ margin: "14px 0 8px" }}>주문 내역</div>
+                {!orders.length && <div className="empty">주문 내역이 없어요.</div>}
                 {orders.map((o) => (
                   <div key={o.num} className="row" style={{ padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
                     <div className="meta">주문 {o.num} · {o.pharmName}</div>
-                    <div className="meta">{won(DEPOSIT)} {o.status === "rejected" ? "(환불됨)" : ""}</div>
+                    <div className="meta">{o.status === "rejected" ? "취소됨" : o.status === "done" ? "완료" : "진행중"}</div>
                   </div>
                 ))}
               </div>
@@ -1212,124 +1220,149 @@ export default function PatientApp() {
         <div className="drug-overlay" onClick={() => setDrugInfoOpen(false)}>
           <div className="drug-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="drug-handle" />
-            {drugInfoLoading ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
-                <div style={{ fontSize: 32 }}>💊</div>
-                <div style={{ marginTop: 8, fontSize: 13 }}>약 정보 불러오는 중...</div>
-              </div>
-            ) : drugInfo ? (
-              <>
-                {/* 포장 사진 */}
-                {(() => {
-                  const pkgImgs = (() => {
+
+            {/* ── 스크롤 영역: 사진 + 이름 + 태그 + 약 정보 ── */}
+            <div className="drug-sheet-scroll">
+              {drugInfoLoading ? (
+                <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
+                  <div style={{ fontSize: 32 }}>💊</div>
+                  <div style={{ marginTop: 8, fontSize: 13 }}>약 정보 불러오는 중...</div>
+                </div>
+              ) : drugInfo ? (
+                <>
+                  {/* 포장 사진 */}
+                  {(() => {
+                    const pkgImgs = (() => {
+                      try {
+                        if (drugInfo.package_image) {
+                          const arr = typeof drugInfo.package_image === "string" ? JSON.parse(drugInfo.package_image) : drugInfo.package_image;
+                          if (Array.isArray(arr) && arr.length) return arr;
+                        }
+                      } catch {}
+                      return null;
+                    })();
+                    const src = pkgImgs?.[0] || drugInfo._packageImg || drugInfo.item_image;
+                    return src
+                      ? <img src={src} alt={drugInfo.item_name} className="drug-img" />
+                      : <div className="drug-img drug-img-placeholder">💊</div>;
+                  })()}
+
+                  {/* 이름 + 제조사 */}
+                  <div className="drug-name">{drugInfo.item_name}</div>
+                  <div className="drug-mfr">{drugInfo.entp_name}</div>
+
+                  {/* 효능 태그 */}
+                  {drugInfo.efcy_tags && (() => {
                     try {
-                      if (drugInfo.package_image) {
-                        const arr = typeof drugInfo.package_image === "string" ? JSON.parse(drugInfo.package_image) : drugInfo.package_image;
-                        if (Array.isArray(arr) && arr.length) return arr;
-                      }
-                    } catch {}
-                    return null;
-                  })();
-                  const src = pkgImgs?.[0] || drugInfo._packageImg || drugInfo.item_image;
-                  return src
-                    ? <img src={src} alt={drugInfo.item_name} className="drug-img" />
-                    : <div className="drug-img drug-img-placeholder">💊</div>;
-                })()}
+                      const tags = typeof drugInfo.efcy_tags === "string" ? JSON.parse(drugInfo.efcy_tags) : drugInfo.efcy_tags;
+                      return (
+                        <div className="drug-tags">
+                          {tags.slice(0, 6).map((t, i) => <span key={i} className="drug-tag">{t}</span>)}
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
 
-                {/* 이름 + 제조사 */}
-                <div className="drug-name">{drugInfo.item_name}</div>
-                <div className="drug-mfr">{drugInfo.entp_name}</div>
+                  {/* 약 정보 구분선 */}
+                  <div className="drug-info-divider">
+                    <div className="drug-info-divider-line" />
+                    <span className="drug-info-divider-label">📋 약 정보</span>
+                    <div className="drug-info-divider-line" />
+                  </div>
 
-                {/* 효능 태그 */}
-                {drugInfo.efcy_tags && (() => {
-                  try {
-                    const tags = typeof drugInfo.efcy_tags === "string" ? JSON.parse(drugInfo.efcy_tags) : drugInfo.efcy_tags;
-                    return (
-                      <div className="drug-tags">
-                        {tags.slice(0, 6).map((t, i) => <span key={i} className="drug-tag">{t}</span>)}
+                  {/* 약 정보 아코디언 */}
+                  <div className="drug-sections">
+                    {[
+                      { icon: "✅", title: "효능·효과", content: drugInfo.efcy },
+                      { icon: "💊", title: "용법·용량", content: drugInfo.use_method },
+                      { icon: "⚠️", title: "주의사항", content: [drugInfo.atpn_warn, drugInfo.atpn].filter(Boolean).join("\n\n") },
+                      { icon: "🔄", title: "상호작용", content: drugInfo.intrc },
+                      { icon: "😵", title: "이상반응(부작용)", content: drugInfo.se },
+                      { icon: "📦", title: "보관방법", content: drugInfo.deposit_method },
+                    ].filter(s => s.content).map((s, i) => (
+                      <DrugSection key={i} icon={s.icon} title={s.title} content={s.content} />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
+                  <div style={{ fontSize: 32 }}>🔍</div>
+                  <div style={{ marginTop: 8, fontSize: 13 }}>약 정보를 찾을 수 없어요</div>
+                </div>
+              )}
+            </div>
+
+            {/* ── 고정 하단: 단위 선택 + 수량 + 버튼 ── */}
+            {drugInfo && (
+              <div className="drug-sheet-bottom">
+                {!drugAdded ? (
+                  <>
+                    {/* 단위 칩 */}
+                    {drugUnits.length > 0 && (
+                      <div style={{ marginBottom: 10 }}>
+                        <div className="drug-unit-label" style={{ marginBottom: 8 }}>📦 포장 단위 선택</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {drugUnits.map((u) => (
+                            <span
+                              key={u.standard_code}
+                              className={"chip" + (drugSelUnit?.standard_code === u.standard_code ? " on" : "")}
+                              style={{ fontSize: 13, padding: "7px 16px" }}
+                              onClick={() => { setDrugSelUnit(u); setDrugQty(1); }}
+                            >{u.unit_label}</span>
+                          ))}
+                        </div>
                       </div>
-                    );
-                  } catch { return null; }
-                })()}
-
-                {/* 포장 단위 선택 */}
-                {drugUnits.length > 0 && (
-                  <div className="drug-unit-section">
-                    <div className="drug-unit-label">📦 포장 단위 선택</div>
-                    <div className="drug-unit-chips">
-                      {drugUnits.map((u) => (
-                        <span
-                          key={u.standard_code}
-                          className={"chip" + (drugSelUnit?.standard_code === u.standard_code ? " on" : "")}
-                          style={{ fontSize: 13, padding: "7px 16px" }}
-                          onClick={() => { setDrugSelUnit(u); setDrugQty(1); }}
-                        >{u.unit_label}</span>
-                      ))}
+                    )}
+                    {/* 담기 버튼 */}
+                    <button
+                      className="btn"
+                      style={{ opacity: drugUnits.length > 0 && !drugSelUnit ? 0.4 : 1 }}
+                      onClick={addDrugToCart}
+                    >
+                      🛒 장바구니에 담기{drugSelUnit ? ` (${drugSelUnit.unit_label})` : ""}
+                    </button>
+                    {drugUnits.length > 0 && !drugSelUnit && (
+                      <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--gray)", marginTop: 5 }}>
+                        포장 단위를 먼저 선택해주세요
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* 담긴 후: 수량 조절 카드 */}
+                    <div className="drug-qty-row">
+                      <div className="drug-qty-name">
+                        {drugInfo.item_name.length > 16 ? drugInfo.item_name.slice(0, 16) + "…" : drugInfo.item_name}
+                        {drugSelUnit && <span style={{ color: "var(--teal)", fontWeight: 700 }}> {drugSelUnit.unit_label}</span>}
+                      </div>
+                      <div className="drug-qty-controls">
+                        <button onClick={() => updateDrugQty(drugQty - 1)}>−</button>
+                        <span>{drugQty}</span>
+                        <button onClick={() => updateDrugQty(drugQty + 1)}>＋</button>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* 선택된 단위 + 수량 조절 카드 */}
-                {drugSelUnit && (
-                  <div className="drug-qty-row">
-                    <div className="drug-qty-name">
-                      {drugInfo.item_name.length > 18
-                        ? drugInfo.item_name.slice(0, 18) + "…"
-                        : drugInfo.item_name}
-                      {" "}
-                      <span style={{ color: "var(--teal)", fontWeight: 700 }}>{drugSelUnit.unit_label}</span>
+                    {/* 구매수량 + 총합 */}
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, padding: "8px 2px 10px" }}>
+                      <span style={{ color: "var(--gray)" }}>구매수량 <b style={{ color: "var(--dark)" }}>{drugQty}개</b></span>
+                      <span style={{ color: "var(--gray)" }}>가격은 약국에서 확인</span>
                     </div>
-                    <div className="drug-qty-controls">
-                      <button onClick={() => setDrugQty((q) => Math.max(1, q - 1))}>−</button>
-                      <span>{drugQty}</span>
-                      <button onClick={() => setDrugQty((q) => Math.min(99, q + 1))}>＋</button>
+                    {/* 버튼 2개 */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        className="btn outline"
+                        style={{ flex: 1 }}
+                        onClick={() => setDrugInfoOpen(false)}
+                      >닫기</button>
+                      <button
+                        className="btn"
+                        style={{ flex: 1 }}
+                        onClick={() => { setDrugInfoOpen(false); setTab(3); }}
+                      >🛒 장바구니 보기</button>
                     </div>
-                  </div>
+                  </>
                 )}
-
-                {/* 장바구니에 담기 */}
-                <button
-                  className="btn"
-                  style={{ marginTop: 14, opacity: drugUnits.length > 0 && !drugSelUnit ? 0.45 : 1 }}
-                  onClick={addDrugToCart}
-                >
-                  🛒 장바구니에 담기
-                  {drugSelUnit ? ` (${drugSelUnit.unit_label} × ${drugQty})` : ""}
-                </button>
-                {drugUnits.length > 0 && !drugSelUnit && (
-                  <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--gray)", marginTop: 5 }}>
-                    포장 단위를 먼저 선택해주세요
-                  </div>
-                )}
-
-                {/* 약 정보 구분선 */}
-                <div className="drug-info-divider">
-                  <div className="drug-info-divider-line" />
-                  <span className="drug-info-divider-label">📋 약 정보</span>
-                  <div className="drug-info-divider-line" />
-                </div>
-
-                {/* 약 정보 아코디언 */}
-                <div className="drug-sections">
-                  {[
-                    { icon: "✅", title: "효능·효과", content: drugInfo.efcy },
-                    { icon: "💊", title: "용법·용량", content: drugInfo.use_method },
-                    { icon: "⚠️", title: "주의사항", content: [drugInfo.atpn_warn, drugInfo.atpn].filter(Boolean).join("\n\n") },
-                    { icon: "🔄", title: "상호작용", content: drugInfo.intrc },
-                    { icon: "😵", title: "이상반응(부작용)", content: drugInfo.se },
-                    { icon: "📦", title: "보관방법", content: drugInfo.deposit_method },
-                  ].filter(s => s.content).map((s, i) => (
-                    <DrugSection key={i} icon={s.icon} title={s.title} content={s.content} />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#aaa" }}>
-                <div style={{ fontSize: 32 }}>🔍</div>
-                <div style={{ marginTop: 8, fontSize: 13 }}>약 정보를 찾을 수 없어요</div>
               </div>
             )}
-            <button className="drug-close" onClick={() => setDrugInfoOpen(false)}>닫기</button>
           </div>
         </div>
       )}

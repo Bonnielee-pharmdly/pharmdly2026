@@ -138,8 +138,10 @@ select, input { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px s
 
 /* ── 약 정보 모달 ── */
 .drug-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; display: flex; align-items: flex-end; }
-.drug-sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding: 12px 16px 32px; }
-.drug-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+.drug-sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
+.drug-sheet-scroll { overflow-y: auto; flex: 1; padding: 0 16px 12px; }
+.drug-sheet-bottom { padding: 10px 16px 28px; border-top: 1px solid var(--line); background: #fff; flex-shrink: 0; }
+.drug-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 12px auto 8px; flex-shrink: 0; }
 .drug-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 12px; background: #f7f7f7; margin-bottom: 12px; }
 .drug-name { font-size: 18px; font-weight: 800; color: var(--dark); line-height: 1.3; }
 .drug-mfr { font-size: 12px; color: var(--gray); margin-top: 2px; margin-bottom: 10px; }
